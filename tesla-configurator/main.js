@@ -1,221 +1,292 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { createCar } from './car.js';
+import { createEnvironment } from './environment.js';
+import { createModelY } from './car.js';
 
 const canvas = document.getElementById('scene');
-const stage = document.getElementById('viewer-stage');
-const loadingOverlay = document.getElementById('loading-overlay');
-const heroCopy = document.querySelector('.hero-copy');
+const loading = document.getElementById('loading');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+let renderer;
+try {
+	renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch {
+	loading.innerHTML = '';
+	const note = document.createElement('div');
+	note.className = 'no-webgl-note';
+	note.innerHTML = '<p>This tour needs WebGL, which your browser has turned off.<br>The Model Y remains parked in the Sea of Tranquility.</p>';
+	document.body.appendChild(note);
+	throw new Error('WebGL unavailable');
+}
+
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.1;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0c0c0d);
-
+scene.background = new THREE.Color(0x020204);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
 
-const EXTERIOR_FOV = 35;
-const INTERIOR_FOV = 78;
-const camera = new THREE.PerspectiveCamera(EXTERIOR_FOV, 1, 0.05, 100);
-const DEFAULT_POS = new THREE.Vector3(4.6, 2.05, 5.1);
-const DEFAULT_TARGET = new THREE.Vector3(0, 0.75, 0);
-camera.position.copy(DEFAULT_POS);
+const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 2000);
+camera.position.set(5.6, 2.2, 6.8);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.copy(DEFAULT_TARGET);
+controls.enabled = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.9;
-controls.minDistance = 3;
-controls.maxDistance = 9;
-controls.maxPolarAngle = Math.PI * 0.49;
 controls.enablePan = false;
-controls.update();
+controls.enableZoom = false; // wheel must keep scrolling the page
+controls.minPolarAngle = 0.15;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.target.set(0, 0.75, 0);
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0x1a1a1a, 0.55);
-scene.add(hemi);
+const env = createEnvironment();
+scene.add(env.group);
 
-const key = new THREE.DirectionalLight(0xffffff, 2.4);
-key.position.set(5, 8, 3);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = -5;
-key.shadow.camera.right = 5;
-key.shadow.camera.top = 5;
-key.shadow.camera.bottom = -5;
-key.shadow.bias = -0.0003;
-scene.add(key);
-
-const fill = new THREE.DirectionalLight(0xbcd4ff, 0.5);
-fill.position.set(-6, 3, -4);
-scene.add(fill);
-
-const ground = new THREE.Mesh(
-	new THREE.CircleGeometry(14, 64),
-	new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 1 })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
-
-const car = createCar();
+const car = await createModelY();
 scene.add(car.group);
+loading.classList.add('done');
 
-function resize() {
-	const { clientWidth, clientHeight } = stage;
-	renderer.setSize(clientWidth, clientHeight);
-	camera.aspect = clientWidth / clientHeight;
-	camera.updateProjectionMatrix();
-}
-window.addEventListener('resize', resize);
-resize();
+// ---------- camera path ----------
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const KF = [
+	{ pos: V(6.6, 2.5, 8.0), tgt: V(0, -0.08, 0), fov: 36 },      // 0 hero: car low in frame, headline above
+	{ pos: V(7.8, 1.15, 0.85), tgt: V(0, 0.8, 0.55), fov: 32 },   // 1 side profile, car right of panel
+	{ pos: V(3.4, 1.9, -5.8), tgt: V(0, 0.85, -1.1), fov: 36 },   // 2 rear three-quarter, hatch open
+	{ pos: car.interiorEye, tgt: car.interiorTarget, fov: 62 },   // 3 driver's seat
+	{ pos: V(2.5, 1.5, -1.3), tgt: V(1.1, 1.0, -1.7), fov: 46 },  // 4 exit via rear quarter
+	{ pos: V(2.7, 1.2, -3.7), tgt: V(0.85, 1.0, -1.95), fov: 40 },// 5 charge port
+	{ pos: V(6.4, 2.4, 6.6), tgt: V(-0.7, 0.55, 0), fov: 36 },    // 6 explore: car left, dock clear
+];
+const SECTION_KF = [0, 1, 2, 3, 5, 6]; // keyframe index at each section's center
 
-let transition = null;
-function startTransition(toPos, toTarget, toFov = camera.fov, duration = 950) {
-	transition = {
-		fromPos: camera.position.clone(),
-		toPos: toPos.clone(),
-		fromTarget: controls.target.clone(),
-		toTarget: toTarget.clone(),
-		fromFov: camera.fov,
-		toFov,
-		t0: performance.now(),
-		duration,
-	};
-	controls.enabled = false;
+const sections = [...document.querySelectorAll('.fold')];
+let anchors = [];
+function computeAnchors() {
+	anchors = sections.map((el) => el.offsetTop + el.offsetHeight / 2);
 }
 
-function easeInOutCubic(t) {
-	return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
+const smoothstep = (f) => f * f * (3 - 2 * f);
 
-const clock = new THREE.Clock();
-
-function animate() {
-	requestAnimationFrame(animate);
-	const dt = clock.getDelta();
-
-	if (transition) {
-		const t = Math.min(1, (performance.now() - transition.t0) / transition.duration);
-		const e = easeInOutCubic(t);
-		camera.position.lerpVectors(transition.fromPos, transition.toPos, e);
-		controls.target.lerpVectors(transition.fromTarget, transition.toTarget, e);
-		camera.fov = transition.fromFov + (transition.toFov - transition.fromFov) * e;
-		camera.updateProjectionMatrix();
-		if (t >= 1) {
-			transition = null;
-			controls.enabled = true;
+function pathT() {
+	const vc = window.scrollY + window.innerHeight / 2;
+	if (vc <= anchors[0]) return SECTION_KF[0];
+	for (let i = 0; i < anchors.length - 1; i++) {
+		if (vc < anchors[i + 1]) {
+			const f = (vc - anchors[i]) / (anchors[i + 1] - anchors[i]);
+			return SECTION_KF[i] + smoothstep(f) * (SECTION_KF[i + 1] - SECTION_KF[i]);
 		}
+	}
+	return SECTION_KF[SECTION_KF.length - 1];
+}
+
+// ---------- tour state (scroll-driven, reversible) ----------
+const ui = {
+	doors: document.querySelector('[data-action="doors"]'),
+	frunk: document.querySelector('[data-action="frunk"]'),
+	liftgate: document.querySelector('[data-action="liftgate"]'),
+	chargePort: document.querySelector('[data-action="chargePort"]'),
+	lights: document.querySelector('[data-action="lights"]'),
+	interior: document.querySelector('[data-action="interior"]'),
+};
+
+let exploring = false;
+let interiorView = false;
+
+function setPressed(btn, on) {
+	btn.setAttribute('aria-pressed', String(on));
+}
+
+function applyTourState(t) {
+	const hatchOpen = t > 1.55 && t < 3.35;
+	car.hinges.liftgate.set(hatchOpen);
+	car.hinges.frunk.set(hatchOpen);
+	const night = t > 4.25 && t < 5.75;
+	if (car.lightsOn !== night) car.setLights(night);
+	car.setChargePort(night);
+}
+
+function enterExplore() {
+	exploring = true;
+	controls.enabled = !interiorView;
+	['liftgate', 'frunk'].forEach((h) => car.hinges[h].set(false));
+	car.setLights(false);
+	car.setChargePort(false);
+	Object.values(ui).forEach((b) => setPressed(b, false));
+	// a fast jump (or reduced motion) can land here mid-path — snap to the
+	// explore framing rather than orbiting from wherever the camera was left
+	if (camera.position.distanceTo(KF[6].pos) > 1.5) {
+		camera.position.copy(KF[6].pos);
+		controls.target.copy(KF[6].tgt);
+		camera.fov = KF[6].fov;
+		camera.updateProjectionMatrix();
+	}
+}
+
+function leaveExplore() {
+	exploring = false;
+	interiorView = false;
+	controls.enabled = false;
+	ui.interior.textContent = 'Step inside';
+	['doorFL', 'doorFR', 'doorRL', 'doorRR'].forEach((d) => car.hinges[d].set(false));
+}
+
+// ---------- render loop ----------
+const clock = new THREE.Clock();
+let smoothT = 0;
+const heroCopy = document.querySelector('.hero-copy');
+
+function frame() {
+	requestAnimationFrame(frame);
+	const dt = Math.min(clock.getDelta(), 0.1);
+	const t = pathT();
+	smoothT = reducedMotion ? t : smoothT + (t - smoothT) * Math.min(1, dt * 4.2);
+
+	const wasExploring = exploring;
+	if (smoothT > 5.82 && !wasExploring) enterExplore();
+	if (smoothT <= 5.82 && wasExploring) leaveExplore();
+
+	if (!exploring) {
+		applyTourState(smoothT);
+		const s = Math.min(Math.floor(smoothT), KF.length - 2);
+		const f = smoothT - s;
+		camera.position.lerpVectors(KF[s].pos, KF[s + 1].pos, f);
+		controls.target.lerpVectors(KF[s].tgt, KF[s + 1].tgt, f);
+		camera.fov = KF[s].fov + (KF[s + 1].fov - KF[s].fov) * f;
+		// gentle drift while parked on the hero fold
+		if (!reducedMotion && smoothT < 0.5) {
+			const drift = clock.elapsedTime * 0.05;
+			camera.position.x += Math.sin(drift) * 0.25 * (1 - smoothT * 2);
+			camera.position.z += Math.cos(drift * 0.7) * 0.2 * (1 - smoothT * 2);
+		}
+		camera.updateProjectionMatrix();
+		camera.lookAt(controls.target);
+	} else if (interiorView) {
+		camera.position.lerp(car.interiorEye, Math.min(1, dt * 4));
+		controls.target.lerp(car.interiorTarget, Math.min(1, dt * 4));
+		camera.fov += (62 - camera.fov) * Math.min(1, dt * 4);
+		camera.updateProjectionMatrix();
+		camera.lookAt(controls.target);
+	} else {
+		camera.fov += (38 - camera.fov) * Math.min(1, dt * 4);
+		camera.updateProjectionMatrix();
+		controls.update();
+	}
+
+	// hero parallax: headline drifts slower than the page
+	if (!reducedMotion && window.scrollY < window.innerHeight * 1.5) {
+		const y = window.scrollY;
+		heroCopy.style.transform = `translateY(calc(var(--hero-offset) + ${y * 0.3}px))`;
+		heroCopy.style.opacity = String(Math.max(0, 1 - y / (window.innerHeight * 0.55)));
 	}
 
 	car.update(dt);
-	controls.update();
+	env.update(dt);
 	renderer.render(scene, camera);
 }
-animate();
 
-requestAnimationFrame(() => {
-	requestAnimationFrame(() => {
-		setTimeout(() => loadingOverlay.classList.add('hidden'), 250);
+// ---------- explore dock ----------
+ui.doors.addEventListener('click', () => {
+	const open = !car.hinges.doorFL.isOpen;
+	['doorFL', 'doorFR', 'doorRL', 'doorRR'].forEach((d) => car.hinges[d].set(open));
+	setPressed(ui.doors, open);
+});
+for (const key of ['frunk', 'liftgate']) {
+	ui[key].addEventListener('click', () => {
+		car.hinges[key].toggle();
+		setPressed(ui[key], car.hinges[key].isOpen);
+	});
+}
+ui.chargePort.addEventListener('click', () => {
+	const on = ui.chargePort.getAttribute('aria-pressed') !== 'true';
+	car.setChargePort(on);
+	setPressed(ui.chargePort, on);
+});
+ui.lights.addEventListener('click', () => {
+	const on = !car.lightsOn;
+	car.setLights(on);
+	setPressed(ui.lights, on);
+});
+ui.interior.addEventListener('click', () => {
+	interiorView = !interiorView;
+	controls.enabled = exploring && !interiorView;
+	ui.interior.textContent = interiorView ? 'Step outside' : 'Step inside';
+	setPressed(ui.interior, interiorView);
+	if (!interiorView && exploring) {
+		// hand the camera back to orbit from the explore keyframe
+		camera.position.copy(KF[6].pos);
+		controls.target.copy(KF[6].tgt);
+	}
+});
+
+document.querySelectorAll('.swatch').forEach((btn) => {
+	btn.addEventListener('click', () => {
+		document.querySelectorAll('.swatch').forEach((s) => {
+			s.classList.remove('is-active');
+			s.setAttribute('aria-pressed', 'false');
+		});
+		btn.classList.add('is-active');
+		btn.setAttribute('aria-pressed', 'true');
+		car.setPaint(car.colors[btn.dataset.paint]);
 	});
 });
 
-canvas.addEventListener('pointerdown', () => heroCopy.classList.add('faded'), { once: true });
+// ---------- waypoint rail ----------
+const railDots = [...document.querySelectorAll('[data-rail]')];
+function updateRail() {
+	const vc = window.scrollY + window.innerHeight / 2;
+	let active = 0;
+	sections.forEach((el, i) => {
+		if (vc >= el.offsetTop) active = i;
+	});
+	railDots.forEach((d, i) => d.classList.toggle('is-active', i === active));
+}
+window.addEventListener('scroll', updateRail, { passive: true });
 
-// ---- UI wiring ----
-let interiorMode = false;
-let doorsOpen = false;
-let lightsOn = false;
-let chargePortOpen = false;
-
-const interiorBtn = document.querySelector('[data-action="interior"]');
-
-function setInteriorMode(next) {
-	interiorMode = next;
-	if (interiorMode) {
-		controls.autoRotate = false;
-		controls.minDistance = 0.05;
-		controls.maxDistance = 1.2;
-		startTransition(car.interiorEye, car.interiorTarget, INTERIOR_FOV);
-		car.setShellVisible(false);
-		interiorBtn.textContent = 'Exit Interior';
-		interiorBtn.classList.add('active');
-	} else {
-		controls.minDistance = 3;
-		controls.maxDistance = 9;
-		startTransition(DEFAULT_POS, DEFAULT_TARGET, EXTERIOR_FOV);
-		car.setShellVisible(true);
-		interiorBtn.textContent = 'View Interior';
-		interiorBtn.classList.remove('active');
-	}
-	heroCopy.classList.add('faded');
+// ---------- panel reveals (visible by default; JS adds the settle) ----------
+if (!reducedMotion && 'IntersectionObserver' in window) {
+	const revealables = document.querySelectorAll('.panel, .explore-head, .dock');
+	const io = new IntersectionObserver((entries) => {
+		entries.forEach((e) => {
+			if (e.isIntersecting) {
+				e.target.classList.remove('will-reveal');
+				io.unobserve(e.target);
+			}
+		});
+	}, { threshold: 0.25 });
+	revealables.forEach((el) => {
+		if (el.getBoundingClientRect().top > window.innerHeight) {
+			el.classList.add('will-reveal');
+			io.observe(el);
+		}
+	});
 }
 
-document.getElementById('button-row').addEventListener('click', (e) => {
-	const btn = e.target.closest('.ctrl');
-	if (!btn) return;
-	const action = btn.dataset.action;
+// ---------- sizing ----------
+function resize() {
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	computeAnchors();
+}
+window.addEventListener('resize', resize, { passive: true });
+resize();
+if (document.fonts?.ready) document.fonts.ready.then(computeAnchors);
+window.addEventListener('load', computeAnchors);
 
-	switch (action) {
-		case 'doors':
-			doorsOpen = !doorsOpen;
-			['doorFL', 'doorFR', 'doorRL', 'doorRR'].forEach((id) => car.hinges[id].set(doorsOpen));
-			btn.classList.toggle('active', doorsOpen);
-			btn.textContent = doorsOpen ? 'Close Doors' : 'Doors';
-			break;
-		case 'frunk':
-			car.hinges.frunk.toggle();
-			btn.classList.toggle('active', car.hinges.frunk.isOpen);
-			btn.textContent = car.hinges.frunk.isOpen ? 'Close Frunk' : 'Frunk';
-			break;
-		case 'trunk':
-			car.hinges.trunk.toggle();
-			btn.classList.toggle('active', car.hinges.trunk.isOpen);
-			btn.textContent = car.hinges.trunk.isOpen ? 'Close Trunk' : 'Trunk';
-			break;
-		case 'chargePort':
-			chargePortOpen = !chargePortOpen;
-			car.setChargePort(chargePortOpen);
-			btn.classList.toggle('active', chargePortOpen);
-			btn.textContent = chargePortOpen ? 'Close Port' : 'Charge Port';
-			break;
-		case 'lights':
-			lightsOn = !lightsOn;
-			car.setLights(lightsOn);
-			btn.classList.toggle('active', lightsOn);
-			break;
-		case 'interior':
-			setInteriorMode(!interiorMode);
-			break;
-		case 'reset':
-			if (interiorMode) setInteriorMode(false);
-			else startTransition(DEFAULT_POS, DEFAULT_TARGET);
-			controls.autoRotate = true;
-			break;
-	}
-});
+updateRail();
+frame();
 
-document.getElementById('color-row').addEventListener('click', (e) => {
-	const btn = e.target.closest('.swatch');
-	if (!btn) return;
-	document.querySelectorAll('.swatch').forEach((s) => {
-		s.classList.remove('active');
-		s.setAttribute('aria-pressed', 'false');
-	});
-	btn.classList.add('active');
-	btn.setAttribute('aria-pressed', 'true');
-	car.setPaint(car.colors[btn.dataset.color]);
-});
-
-canvas.addEventListener('pointerdown', () => {
-	controls.autoRotate = false;
-});
+// test hook (harmless in production, load-bearing for automated checks)
+window.__page = {
+	camera, controls, car, env,
+	get t() { return pathT(); },
+	get smoothT() { return smoothT; },
+	get exploring() { return exploring; },
+};

@@ -3,58 +3,141 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Model Y | Tesla Configurator (fan project)</title>
+<title>Model Y — Lunar Tour</title>
+<meta name="description" content="A fan-made 3D tour of the Tesla Model Y, parked in the Sea of Tranquility. Scroll to open the doors, the frunk, the liftgate — and take the controls." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌘</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Saira:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="app">
 
-	<header class="topnav">
-		<div class="wordmark">TESLA</div>
-		<nav class="model-nav">
-			<span class="disabled">Model S</span>
-			<span class="disabled">Model 3</span>
-			<span class="disabled">Model X</span>
-			<span class="active">Model Y</span>
-		</nav>
-		<div class="nav-spacer" aria-hidden="true"></div>
-	</header>
+<canvas id="scene" aria-hidden="true"></canvas>
 
-	<main id="viewer-stage">
-		<canvas id="scene"></canvas>
+<div id="loading" role="status">
+	<p class="loading-callsign">LZ-01 · SEA OF TRANQUILITY</p>
+	<div class="loading-bar"><div class="loading-fill"></div></div>
+	<p class="loading-note">Landing the Model Y…</p>
+</div>
 
+<header class="topbar">
+	<span class="wordmark">TESLA</span>
+	<span class="fan-chip">Fan demo</span>
+</header>
+
+<nav class="rail" aria-label="Tour waypoints">
+	<a href="#hero" data-rail aria-label="Landing zone"></a>
+	<a href="#wp-design" data-rail aria-label="Design"></a>
+	<a href="#wp-storage" data-rail aria-label="Storage"></a>
+	<a href="#wp-interior" data-rail aria-label="Interior"></a>
+	<a href="#wp-power" data-rail aria-label="Power"></a>
+	<a href="#explore" data-rail aria-label="Explore"></a>
+</nav>
+
+<main>
+	<section class="fold hero" id="hero">
 		<div class="hero-copy">
 			<h1>Model Y</h1>
-			<p>Explore every angle. Open the doors, the frunk, the trunk — check how it works.</p>
+			<p class="hero-tag">Now touring the Sea of Tranquility.</p>
 		</div>
+		<p class="scroll-hint" aria-hidden="true">Scroll to begin the tour<span class="chevron">▾</span></p>
+	</section>
 
-		<div id="loading-overlay">
-			<div class="spinner"></div>
-			<span>Loading Model Y…</span>
-		</div>
-	</main>
+	<section class="fold" id="wp-design">
+		<article class="panel side-left">
+			<p class="wp">WP·01 — DESIGN</p>
+			<h2>One arc, nose to tail.</h2>
+			<p>The roofline is a single unbroken curve from windshield to liftgate — the
+			shape that earns a 0.23 drag coefficient. Aerodynamics matter less up here;
+			there is no air to push aside. It still looks right.</p>
+			<dl class="stats">
+				<div><dt>Length</dt><dd>4,751 mm</dd></div>
+				<div><dt>Height</dt><dd>1,624 mm</dd></div>
+				<div><dt>Drag</dt><dd>0.23 Cd</dd></div>
+			</dl>
+		</article>
+	</section>
 
-	<footer class="control-dock">
-		<div class="color-row" id="color-row" role="radiogroup" aria-label="Paint color">
-			<button class="swatch active" data-color="pearlWhite" style="--swatch:#f1f1ef" aria-label="Pearl White" aria-pressed="true"></button>
-			<button class="swatch" data-color="solidBlack" style="--swatch:#161616" aria-label="Solid Black"></button>
-			<button class="swatch" data-color="midnightSilver" style="--swatch:#54565a" aria-label="Midnight Silver"></button>
-			<button class="swatch" data-color="deepBlue" style="--swatch:#1a3a63" aria-label="Deep Blue Metallic"></button>
-			<button class="swatch" data-color="red" style="--swatch:#87070f" aria-label="Red Multicoat"></button>
-		</div>
+	<section class="fold" id="wp-storage">
+		<article class="panel side-right">
+			<p class="wp">WP·02 — STORAGE</p>
+			<h2>Pack for any planet.</h2>
+			<p>Fold the second row and the Model Y swallows 2,158 litres — cargo bay in
+			the back, frunk up front. Enough for two weeks of supplies, or one very
+			committed rock collection.</p>
+			<dl class="stats">
+				<div><dt>Max cargo</dt><dd>2,158 L</dd></div>
+				<div><dt>Liftgate</dt><dd>Powered</dd></div>
+			</dl>
+		</article>
+	</section>
 
-		<div class="button-row" id="button-row">
-			<button class="ctrl" data-action="doors">Doors</button>
-			<button class="ctrl" data-action="frunk">Frunk</button>
-			<button class="ctrl" data-action="trunk">Trunk</button>
-			<button class="ctrl" data-action="chargePort">Charge Port</button>
-			<button class="ctrl" data-action="lights">Lights</button>
-			<button class="ctrl view-toggle" data-action="interior">View Interior</button>
-			<button class="ctrl" data-action="reset">Reset View</button>
+	<section class="fold" id="wp-interior">
+		<article class="panel side-left panel-compact">
+			<p class="wp">WP·03 — INTERIOR</p>
+			<h2>The best seat off Earth.</h2>
+			<p>One 15-inch touchscreen runs everything. Overhead, a fixed glass roof —
+			and from this parking spot, the view is Earth, 384,400 km out.</p>
+			<dl class="stats">
+				<div><dt>Display</dt><dd>15″</dd></div>
+				<div><dt>Seats</dt><dd>5</dd></div>
+				<div><dt>Roof</dt><dd>Glass</dd></div>
+			</dl>
+		</article>
+	</section>
+
+	<section class="fold" id="wp-power">
+		<article class="panel side-right">
+			<p class="wp">WP·04 — POWER</p>
+			<h2>Charge where the sun never sets.</h2>
+			<p>Dual Motor all-wheel drive: 0–100 km/h in 5.0 seconds on Earth. On
+			regolith, traction is your problem. A lunar day is 29.5 Earth days of
+			uninterrupted solar; back home, a Supercharger adds up to 241 km in
+			15 minutes.</p>
+			<dl class="stats">
+				<div><dt>Range</dt><dd>533 km <small>WLTP</small></dd></div>
+				<div><dt>Drive</dt><dd>Dual Motor</dd></div>
+				<div><dt>Charging</dt><dd>250 kW</dd></div>
+			</dl>
+		</article>
+	</section>
+
+	<section class="fold explore" id="explore">
+		<div class="explore-head">
+			<p class="wp">FREE FLIGHT</p>
+			<h2>Your turn at the controls.</h2>
+			<p>Drag to orbit. Open everything. Kick the tires — gently, they are the
+			only set within 384,400 km.</p>
 		</div>
+		<div class="dock" role="group" aria-label="Vehicle controls">
+			<div class="swatches" role="group" aria-label="Paint">
+				<button class="swatch is-active" data-paint="pearlWhite" style="--c:#f2f3f0" aria-label="Pearl White" aria-pressed="true"></button>
+				<button class="swatch" data-paint="solidBlack" style="--c:#1a1c1f" aria-label="Solid Black" aria-pressed="false"></button>
+				<button class="swatch" data-paint="quicksilver" style="--c:#9da2a8" aria-label="Quicksilver" aria-pressed="false"></button>
+				<button class="swatch" data-paint="deepBlue" style="--c:#16324f" aria-label="Deep Blue Metallic" aria-pressed="false"></button>
+				<button class="swatch" data-paint="ultraRed" style="--c:#7d1a20" aria-label="Ultra Red" aria-pressed="false"></button>
+			</div>
+			<div class="dock-buttons">
+				<button class="ctrl" data-action="doors" aria-pressed="false">Doors</button>
+				<button class="ctrl" data-action="frunk" aria-pressed="false">Frunk</button>
+				<button class="ctrl" data-action="liftgate" aria-pressed="false">Liftgate</button>
+				<button class="ctrl" data-action="chargePort" aria-pressed="false">Charge port</button>
+				<button class="ctrl" data-action="lights" aria-pressed="false">Lights</button>
+				<button class="ctrl" data-action="interior" aria-pressed="false">Step inside</button>
+			</div>
+		</div>
+	</section>
+
+	<footer class="site-footer">
+		<p>Fan-made demo. Not affiliated with Tesla, Inc. Specs shown are the 2022
+		Model Y Long Range, for context only.</p>
+		<p>Vehicle: <a href="https://sketchfab.com/3d-models/2021-tesla-model-y-59e2ead369984b1a85c800ff6cf6789d">“2021 Tesla Model Y”</a>
+		by <a href="https://sketchfab.com/tonielpro520">tonielpro520</a>, licensed
+		<a href="http://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>.
+		Staged in the Sea of Tranquility.</p>
 	</footer>
-
-</div>
+</main>
 
 <script type="importmap">
 {
