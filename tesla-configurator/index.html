@@ -77,8 +77,8 @@
 		<article class="panel side-left panel-compact">
 			<p class="wp">WP·03 — INTERIOR</p>
 			<h2>The best seat off Earth.</h2>
-			<p>One 15-inch touchscreen runs everything. Overhead, a fixed glass roof —
-			and from this parking spot, the view is Earth, 384,400 km out.</p>
+			<p>One 15-inch touchscreen runs everything. Overhead, a fixed glass roof;
+			out the windshield, nothing but stars for 384,400 km.</p>
 			<dl class="stats">
 				<div><dt>Display</dt><dd>15″</dd></div>
 				<div><dt>Seats</dt><dd>5</dd></div>
@@ -111,12 +111,12 @@
 			only set within 384,400 km.</p>
 		</div>
 		<div class="dock" role="group" aria-label="Vehicle controls">
-			<div class="swatches" role="group" aria-label="Paint">
-				<button class="swatch is-active" data-paint="pearlWhite" style="--c:#f2f3f0" aria-label="Pearl White" aria-pressed="true"></button>
-				<button class="swatch" data-paint="solidBlack" style="--c:#1a1c1f" aria-label="Solid Black" aria-pressed="false"></button>
-				<button class="swatch" data-paint="quicksilver" style="--c:#9da2a8" aria-label="Quicksilver" aria-pressed="false"></button>
-				<button class="swatch" data-paint="deepBlue" style="--c:#16324f" aria-label="Deep Blue Metallic" aria-pressed="false"></button>
-				<button class="swatch" data-paint="ultraRed" style="--c:#7d1a20" aria-label="Ultra Red" aria-pressed="false"></button>
+			<div class="swatches" role="radiogroup" aria-label="Paint">
+				<button class="swatch is-active" data-paint="pearlWhite" role="radio" style="--c:#f2f3f0" aria-label="Pearl White" aria-checked="true"></button>
+				<button class="swatch" data-paint="solidBlack" role="radio" style="--c:#1a1c1f" aria-label="Solid Black" aria-checked="false"></button>
+				<button class="swatch" data-paint="quicksilver" role="radio" style="--c:#9da2a8" aria-label="Quicksilver" aria-checked="false"></button>
+				<button class="swatch" data-paint="deepBlue" role="radio" style="--c:#16324f" aria-label="Deep Blue Metallic" aria-checked="false"></button>
+				<button class="swatch" data-paint="ultraRed" role="radio" style="--c:#7d1a20" aria-label="Ultra Red" aria-checked="false"></button>
 			</div>
 			<div class="dock-buttons">
 				<button class="ctrl" data-action="doors" aria-pressed="false">Doors</button>
@@ -124,20 +124,21 @@
 				<button class="ctrl" data-action="liftgate" aria-pressed="false">Liftgate</button>
 				<button class="ctrl" data-action="chargePort" aria-pressed="false">Charge port</button>
 				<button class="ctrl" data-action="lights" aria-pressed="false">Lights</button>
-				<button class="ctrl" data-action="interior" aria-pressed="false">Step inside</button>
+				<button class="ctrl" data-action="interior">Step inside</button>
 			</div>
 		</div>
 	</section>
 
-	<footer class="site-footer">
+</main>
+
+<footer class="site-footer">
 		<p>Fan-made demo. Not affiliated with Tesla, Inc. Specs shown are the 2022
 		Model Y Long Range, for context only.</p>
 		<p>Vehicle: <a href="https://sketchfab.com/3d-models/2021-tesla-model-y-59e2ead369984b1a85c800ff6cf6789d">“2021 Tesla Model Y”</a>
 		by <a href="https://sketchfab.com/tonielpro520">tonielpro520</a>, licensed
 		<a href="http://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>.
 		Staged in the Sea of Tranquility.</p>
-	</footer>
-</main>
+</footer>
 
 <script type="importmap">
 {

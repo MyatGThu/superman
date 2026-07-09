@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // with a Milky Way band, Earth with earthshine, and harsh airless sunlight.
 
 const SUN_DIR = new THREE.Vector3(0.55, 0.72, 0.42).normalize();
-const EARTH_POS = new THREE.Vector3(-42, 58, -95);
+const EARTH_POS = new THREE.Vector3(-31, 15, -118); // upper-right of the hero frame, clear of the topbar
 
 function makeCanvas(size, draw) {
 	const canvas = document.createElement('canvas');
