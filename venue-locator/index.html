@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Melbourne Adult Venue Locator — addresses only</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <span class="wordmark">Noctis</span>
+  <span class="tag">Melbourne, VIC &middot; addresses only, no rates or availability</span>
+</header>
+<main>
+
+<div class="map-row">
+  <div class="map-stage">
+    <div class="map3d" id="map" role="group" aria-label="Map of Melbourne, gold marker is the CBD, red pins are venues"></div>
+  </div>
+  <div class="card detail" id="detail" aria-live="polite">
+    <h2>Pick a pin or a row</h2>
+    <p class="hint">Drag the map to rotate it. The gold marker is the CBD — every
+    distance below is measured from there, not from you; this page never asks
+    for your location.</p>
+  </div>
+</div>
+
+<section class="list">
+  <h1 class="section-title">All venues, nearest the CBD first</h1>
+  <p class="section-sub">Name and street only — no prices, no schedules, no ratings.</p>
+  <div class="card" style="padding:0">
+    <table class="roll">
+      <thead><tr><th colspan="3">Venue</th><th style="text-align:right">Distance</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+<footer class="site">
+  <p>Demo dataset — fictional venue names, real Melbourne street names without
+  a house number, so nothing here claims to be a verified real listing.
+  Victoria abolished the brothel licensing register in Dec 2023, so no
+  current public dataset exists to source real addresses from; plug
+  verified data into data.js if you have a legitimate source.</p>
+  <p>Address and distance only, by design — no rates, no rosters, no reviews.</p>
+</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>
