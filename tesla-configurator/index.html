@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Model Y | Tesla Configurator (fan project)</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+	<header class="topnav">
+		<div class="wordmark">TESLA</div>
+		<nav class="model-nav">
+			<span class="disabled">Model S</span>
+			<span class="disabled">Model 3</span>
+			<span class="disabled">Model X</span>
+			<span class="active">Model Y</span>
+		</nav>
+		<div class="nav-spacer" aria-hidden="true"></div>
+	</header>
+
+	<main id="viewer-stage">
+		<canvas id="scene"></canvas>
+
+		<div class="hero-copy">
+			<h1>Model Y</h1>
+			<p>Explore every angle. Open the doors, the frunk, the trunk — check how it works.</p>
+		</div>
+
+		<div id="loading-overlay">
+			<div class="spinner"></div>
+			<span>Loading Model Y…</span>
+		</div>
+	</main>
+
+	<footer class="control-dock">
+		<div class="color-row" id="color-row" role="radiogroup" aria-label="Paint color">
+			<button class="swatch active" data-color="pearlWhite" style="--swatch:#f1f1ef" aria-label="Pearl White" aria-pressed="true"></button>
+			<button class="swatch" data-color="solidBlack" style="--swatch:#161616" aria-label="Solid Black"></button>
+			<button class="swatch" data-color="midnightSilver" style="--swatch:#54565a" aria-label="Midnight Silver"></button>
+			<button class="swatch" data-color="deepBlue" style="--swatch:#1a3a63" aria-label="Deep Blue Metallic"></button>
+			<button class="swatch" data-color="red" style="--swatch:#87070f" aria-label="Red Multicoat"></button>
+		</div>
+
+		<div class="button-row" id="button-row">
+			<button class="ctrl" data-action="doors">Doors</button>
+			<button class="ctrl" data-action="frunk">Frunk</button>
+			<button class="ctrl" data-action="trunk">Trunk</button>
+			<button class="ctrl" data-action="chargePort">Charge Port</button>
+			<button class="ctrl" data-action="lights">Lights</button>
+			<button class="ctrl view-toggle" data-action="interior">View Interior</button>
+			<button class="ctrl" data-action="reset">Reset View</button>
+		</div>
+	</footer>
+
+</div>
+
+<script type="importmap">
+{
+	"imports": {
+		"three": "./vendor/three/three.module.js",
+		"three/addons/": "./vendor/three/addons/"
+	}
+}
+</script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

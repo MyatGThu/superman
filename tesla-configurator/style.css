@@ -1,0 +1,231 @@
+:root {
+	color-scheme: dark;
+	--bg: #0c0c0d;
+	--panel: rgba(20, 20, 22, 0.7);
+	--text: #f4f4f4;
+	--muted: #9a9a9d;
+	--accent: #ffffff;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	overflow: hidden;
+}
+
+#app {
+	position: relative;
+	height: 100dvh;
+	width: 100vw;
+	display: flex;
+	flex-direction: column;
+}
+
+.topnav {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 22px 32px;
+	gap: 48px;
+}
+
+.wordmark {
+	position: absolute;
+	left: 32px;
+	font-weight: 600;
+	letter-spacing: 0.35em;
+	font-size: 15px;
+}
+
+.model-nav {
+	display: flex;
+	gap: 36px;
+	font-size: 13px;
+	letter-spacing: 0.03em;
+}
+
+.model-nav .disabled {
+	color: var(--muted);
+	cursor: not-allowed;
+}
+
+.model-nav .active {
+	color: var(--text);
+	border-bottom: 2px solid var(--text);
+	padding-bottom: 4px;
+}
+
+.nav-spacer {
+	position: absolute;
+	right: 32px;
+	width: 24px;
+}
+
+#viewer-stage {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+#scene {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+	cursor: grab;
+}
+
+#scene:active {
+	cursor: grabbing;
+}
+
+.hero-copy {
+	position: absolute;
+	top: 96px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	pointer-events: none;
+	z-index: 5;
+	transition: opacity 0.4s ease;
+}
+
+.hero-copy h1 {
+	margin: 0 0 6px;
+	font-size: 32px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+}
+
+.hero-copy p {
+	margin: 0;
+	color: var(--muted);
+	font-size: 14px;
+}
+
+.hero-copy.faded {
+	opacity: 0;
+}
+
+#loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	background: var(--bg);
+	transition: opacity 0.5s ease;
+	font-size: 13px;
+	color: var(--muted);
+	letter-spacing: 0.05em;
+}
+
+#loading-overlay.hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.spinner {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	border-top-color: var(--text);
+	animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.control-dock {
+	position: relative;
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	padding: 18px 16px 26px;
+}
+
+.color-row {
+	display: flex;
+	gap: 12px;
+}
+
+.swatch {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: var(--swatch);
+	border: 2px solid rgba(255, 255, 255, 0.15);
+	cursor: pointer;
+	padding: 0;
+	transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.swatch:hover {
+	transform: scale(1.08);
+}
+
+.swatch.active {
+	border-color: var(--accent);
+}
+
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+	max-width: 900px;
+}
+
+.ctrl {
+	background: var(--panel);
+	backdrop-filter: blur(10px);
+	color: var(--text);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 999px;
+	padding: 10px 20px;
+	font-size: 13px;
+	letter-spacing: 0.02em;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ctrl:hover {
+	background: rgba(40, 40, 44, 0.85);
+	border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ctrl.active {
+	background: var(--text);
+	color: #0c0c0d;
+	border-color: var(--text);
+}
+
+@media (max-width: 640px) {
+	.model-nav { display: none; }
+	.hero-copy h1 { font-size: 24px; }
+	.ctrl { padding: 9px 14px; font-size: 12px; }
+}
