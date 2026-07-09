@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discounts — Peachy</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">🍑 Peachy</a>
+  <nav>
+    <a href="eats.html">Eats &amp; Map</a><a href="discounts.html">Discounts</a>
+    <a href="compare.html">Compare</a><a href="healthy.html">Healthy</a>
+    <a href="quotes.html">Quotes</a>
+  </nav>
+</header>
+<main>
+
+<section class="hero">
+  <span class="float" style="left:10%;top:12%" data-depth="0.4">🏷️</span>
+  <span class="float" style="right:8%;top:8%" data-depth="0.3">✨</span>
+  <h1 class="bubble peachy pop">Sweet Deals</h1>
+  <p class="lede reveal" style="margin:14px auto 0">Ongoing weekly discounts,
+  grouped by day. Today floats to the top.</p>
+</section>
+
+<section id="days"></section>
+
+</main>
+<footer class="site">Demo data, fictional venues — deals are illustrative.</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+const today = new Date().getDay();
+const order = [...Array(7).keys()].sort((a, b) =>
+  ((a - today + 7) % 7) - ((b - today + 7) % 7)); // today first, then upcoming
+const wrap = document.getElementById("days");
+order.forEach(day => {
+  const deals = VENUES.filter(v => v.discount.day === day);
+  if (!deals.length) return;
+  const sec = document.createElement("div");
+  sec.innerHTML =
+    `<h2 class="bubble ${day === today ? "" : "lavender"} pop" style="margin:26px 0 14px">
+       ${DAYS[day]}${day === today ? " · today!" : ""}</h2>
+     <div class="grid">` +
+    deals.map(v =>
+      `<div class="card tilt reveal">
+         <div class="photo" style="--h:${v.hue}">${v.emoji}</div>
+         <h3>${v.name}</h3>
+         <p class="sub">${v.area}</p>
+         <p><span class="pill gold">deal</span> ${v.discount.deal}</p>
+       </div>`).join("") + "</div>";
+  wrap.appendChild(sec);
+});
+enhance();
+</script>
+</body></html>

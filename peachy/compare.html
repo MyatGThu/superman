@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Price Comparison — Peachy</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">🍑 Peachy</a>
+  <nav>
+    <a href="eats.html">Eats &amp; Map</a><a href="discounts.html">Discounts</a>
+    <a href="compare.html">Compare</a><a href="healthy.html">Healthy</a>
+    <a href="quotes.html">Quotes</a>
+  </nav>
+</header>
+<main>
+
+<section class="hero">
+  <span class="float" style="left:8%;top:10%" data-depth="0.35">⚖️</span>
+  <span class="float" style="right:10%;top:16%" data-depth="0.45">☕</span>
+  <h1 class="bubble lavender pop">Compare</h1>
+  <p class="lede reveal" style="margin:14px auto 0">Same coffee, different bill.
+  Green bar = cheapest right now.</p>
+</section>
+
+<section class="card reveal">
+  <h2 class="bubble pop" style="font-size:1.6rem; margin-bottom:16px">Flat white, by venue</h2>
+  <div class="bars" id="coffee-bars"></div>
+</section>
+
+<section class="card reveal">
+  <h2 class="bubble peachy pop" style="font-size:1.6rem; margin-bottom:16px">Signature dish, by venue</h2>
+  <div class="bars" id="dish-bars"></div>
+</section>
+
+</main>
+<footer class="site">Demo data, fictional venues.</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+function bars(el, key, label) {
+  const sorted = [...VENUES].sort((a, b) => key(a) - key(b));
+  const max = key(sorted[sorted.length - 1]);
+  el.innerHTML = sorted.map((v, i) =>
+    `<div class="brow ${i === 0 ? "best" : ""}">
+       <span class="name">${v.emoji} ${v.name}
+         ${i === 0 ? '<span class="best-tag">✓ cheapest</span>' : ""}</span>
+       <span class="track"><span class="fill" style="width:${100 * key(v) / max}%"></span></span>
+       <span class="val">${money(key(v))}</span>
+     </div>`).join("");
+}
+bars(document.getElementById("coffee-bars"), v => v.coffee);
+bars(document.getElementById("dish-bars"), v => v.dish.price);
+</script>
+</body></html>

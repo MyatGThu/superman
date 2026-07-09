@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthy Options — Peachy</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">🍑 Peachy</a>
+  <nav>
+    <a href="eats.html">Eats &amp; Map</a><a href="discounts.html">Discounts</a>
+    <a href="compare.html">Compare</a><a href="healthy.html">Healthy</a>
+    <a href="quotes.html">Quotes</a>
+  </nav>
+</header>
+<main>
+
+<section class="hero">
+  <span class="float" style="left:9%;top:12%" data-depth="0.4">🥗</span>
+  <span class="float" style="right:9%;top:9%" data-depth="0.3">🌿</span>
+  <h1 class="bubble pop" style="color:#54ab66">Eat Gently</h1>
+  <p class="lede reveal" style="margin:14px auto 0">Every dish scored 1–5 leaves,
+  filterable by what your body's asking for.</p>
+  <p class="reveal" style="margin-top:14px" id="filters"></p>
+</section>
+
+<section class="grid" id="dishes"></section>
+
+</main>
+<footer class="site">Health scores are editorial, kJ approximate — demo data.</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+const FILTERS = [
+  ["all", "All", () => true],
+  ["veg", "Vegetarian", d => d.tags.includes("veg") || d.tags.includes("vegan")],
+  ["vegan", "Vegan", d => d.tags.includes("vegan")],
+  ["gf", "Gluten-free", d => d.tags.includes("gf")],
+  ["light", "Under 2000 kJ", d => d.kj < 2000],
+];
+const filterBox = document.getElementById("filters");
+FILTERS.forEach(([id, label]) => {
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.className = "pill";
+  b.style.cssText = "border:none;cursor:pointer;font-size:.9rem;padding:7px 15px";
+  b.onclick = () => render(id, b);
+  filterBox.appendChild(b);
+});
+
+const wrap = document.getElementById("dishes");
+function render(fid, btn) {
+  document.querySelectorAll("#filters .pill").forEach(p => p.classList.remove("green"));
+  (btn || filterBox.firstChild).classList.add("green");
+  const test = FILTERS.find(f => f[0] === fid)[2];
+  const picks = VENUES.filter(v => test(v.dish))
+    .sort((a, b) => b.dish.health - a.dish.health);
+  wrap.innerHTML = picks.map(v =>
+    `<div class="card tilt reveal in">
+       <div class="photo" style="--h:${v.hue}">${v.emoji}</div>
+       <h3>${v.dish.name}</h3>
+       <p class="sub">${v.name} · ${v.area}</p>
+       <p>${"🌿".repeat(v.dish.health)} <span class="sub">${v.dish.kj} kJ</span>
+          &nbsp;<span class="price">${money(v.dish.price)}</span></p>
+       <p>${v.dish.tags.map(t => `<span class="pill green">${t}</span>`).join("")}</p>
+     </div>`).join("") ||
+    '<p class="lede">Nothing matches that filter today 🌸</p>';
+  enhance();
+}
+render("all");
+</script>
+</body></html>

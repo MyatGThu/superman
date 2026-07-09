@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eats &amp; 3D Map — Peachy</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <a class="logo" href="index.html">🍑 Peachy</a>
+  <nav>
+    <a href="eats.html">Eats &amp; Map</a><a href="discounts.html">Discounts</a>
+    <a href="compare.html">Compare</a><a href="healthy.html">Healthy</a>
+    <a href="quotes.html">Quotes</a>
+  </nav>
+</header>
+<main>
+
+<section class="hero">
+  <span class="float" style="left:8%; top:10%" data-depth="0.4">🥟</span>
+  <span class="float" style="right:6%;top:14%" data-depth="0.3">🍜</span>
+  <h1 class="bubble pop">Cheap Eats</h1>
+  <p class="lede reveal" style="margin:14px auto 0">Drag the map to swing it around.
+  Tap a pin for the venue, its dish and its price.</p>
+</section>
+
+<section>
+  <div class="map-stage">
+    <div class="map3d" id="map">
+      <svg class="river" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M -5 62 C 25 55, 45 70, 70 63 S 95 52, 105 58" fill="none"
+              stroke="#bcd7f2" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+      </svg>
+    </div>
+  </div>
+  <div class="card map-detail reveal" id="detail">Pick a pin on the map 🌸</div>
+</section>
+
+<section>
+  <h2 class="bubble peachy pop">All venues</h2>
+  <div class="grid" id="venues" style="margin-top:18px"></div>
+</section>
+
+</main>
+<footer class="site">Demo data, fictional venues — plug a real dataset into data.js.</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+const map = document.getElementById("map");
+const detail = document.getElementById("detail");
+
+function showVenue(v, pin) {
+  document.querySelectorAll(".pin").forEach(p => p.classList.remove("active"));
+  if (pin) pin.classList.add("active");
+  detail.innerHTML =
+    `<h3>${v.emoji} ${v.name} <span class="sub">· ${v.area}</span></h3>
+     <p>Flat white <span class="price">${money(v.coffee)}</span> &nbsp;·&nbsp;
+        ${v.dish.name} <span class="price">${money(v.dish.price)}</span></p>
+     <p><span class="pill gold">${DAYS[v.discount.day]}</span> ${v.discount.deal}</p>`;
+}
+
+VENUES.forEach(v => {
+  const pin = document.createElement("button");
+  pin.className = "pin";
+  pin.style.left = v.map.x + "%";
+  pin.style.top = v.map.y + "%";
+  pin.style.setProperty("--h", v.hue);
+  pin.innerHTML = `<span class="dot"><span>${v.emoji}</span></span>`;
+  pin.setAttribute("aria-label", v.name);
+  pin.addEventListener("click", () => showVenue(v, pin));
+  map.appendChild(pin);
+
+  const card = document.createElement("div");
+  card.className = "card tilt reveal";
+  card.innerHTML =
+    `<div class="photo" style="--h:${v.hue}">${v.emoji}</div>
+     <h3>${v.name}</h3>
+     <p class="sub">${v.area}</p>
+     <p>coffee <span class="price">${money(v.coffee)}</span> ·
+        ${v.dish.name} <span class="price">${money(v.dish.price)}</span></p>`;
+  document.getElementById("venues").appendChild(card);
+});
+
+/* drag to swing the map around its Z axis; pins counter-rotate to face you */
+let dragging = false, startX = 0, rz = -12;
+map.addEventListener("pointerdown", e => { dragging = true; startX = e.clientX; map.setPointerCapture(e.pointerId); });
+map.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const next = Math.max(-40, Math.min(20, rz + (e.clientX - startX) / 6));
+  map.style.setProperty("--rz", next + "deg");
+  document.querySelectorAll(".pin").forEach(p => p.style.setProperty("--rz", next + "deg"));
+});
+map.addEventListener("pointerup", e => {
+  dragging = false;
+  rz = parseFloat(getComputedStyle(map).getPropertyValue("--rz")) || rz;
+});
+
+enhance(); // wire reveal/tilt on the injected cards
+</script>
+</body></html>
