@@ -253,7 +253,8 @@ export function createEnvironment() {
 	const sun = new THREE.DirectionalLight(0xfff4e2, 3.2);
 	sun.position.copy(SUN_DIR).multiplyScalar(40);
 	sun.castShadow = true;
-	sun.shadow.mapSize.set(2048, 2048);
+	const coarse = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+	sun.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
 	sun.shadow.camera.left = -7;
 	sun.shadow.camera.right = 7;
 	sun.shadow.camera.top = 7;

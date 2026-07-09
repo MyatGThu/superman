@@ -1,3 +1,18 @@
+@font-face {
+	font-family: 'Michroma';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('assets/fonts/michroma-400.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'Saira';
+	font-style: normal;
+	font-weight: 300 600;
+	font-display: swap;
+	src: url('assets/fonts/saira-var.woff2') format('woff2');
+}
+
 :root {
 	color-scheme: dark;
 	--bg: #050507;

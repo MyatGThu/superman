@@ -20,12 +20,14 @@ try {
 	throw new Error('WebGL unavailable');
 }
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false; // redrawn only while parts move
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020204);
@@ -151,6 +153,7 @@ function leaveExplore() {
 // ---------- render loop ----------
 const clock = new THREE.Clock();
 let smoothT = 0;
+let shadowWarmup = 5; // draw the first few shadow frames, then only on motion
 const heroCopy = document.querySelector('.hero-copy');
 
 function frame() {
@@ -197,7 +200,11 @@ function frame() {
 		heroCopy.style.opacity = String(Math.max(0, 1 - y / (window.innerHeight * 0.55)));
 	}
 
-	car.update(dt);
+	const carMoving = car.update(dt);
+	if (carMoving || shadowWarmup > 0) {
+		renderer.shadowMap.needsUpdate = true;
+		if (!carMoving) shadowWarmup--;
+	}
 	env.update(dt);
 	renderer.render(scene, camera);
 }

@@ -165,6 +165,7 @@ function screenTexture() {
 
 export async function createModelY() {
 	const draco = new DRACOLoader().setDecoderPath('./vendor/three/addons/libs/draco/gltf/');
+	draco.preload(); // start the wasm fetch alongside the GLB download
 	const loader = new GLTFLoader().setDRACOLoader(draco);
 	const gltf = await loader.loadAsync('./assets/modely.glb');
 	const root = gltf.scene;
@@ -399,11 +400,16 @@ export async function createModelY() {
 		if (!open) portLedMat.emissiveIntensity = 0;
 	}
 	function update(dt) {
-		Object.values(hinges).forEach((h) => h.update(dt));
+		let moving = false;
+		Object.values(hinges).forEach((h) => {
+			if (Math.abs(h.target - h.current) > 0.0004) moving = true;
+			h.update(dt);
+		});
 		if (charging) {
 			chargeT += dt;
 			portLedMat.emissiveIntensity = 1.4 + Math.sin(chargeT * 4) * 0.9;
 		}
+		return moving;
 	}
 
 	return {
