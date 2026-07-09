@@ -72,6 +72,17 @@ function computeAnchors() {
 	anchors = sections.map((el) => el.offsetTop + el.offsetHeight / 2);
 }
 
+// Keyframe FOVs are framed for a 1.6 landscape aspect. On narrower viewports
+// keep the HORIZONTAL field of view constant instead, so the car never
+// overflows into the copy on portrait phones.
+const DESIGN_ASPECT = 1.6;
+const RAD = Math.PI / 180;
+function aspectFov(fovDeg) {
+	if (camera.aspect >= DESIGN_ASPECT) return fovDeg;
+	const hFov = 2 * Math.atan(Math.tan((fovDeg * RAD) / 2) * DESIGN_ASPECT);
+	return (2 * Math.atan(Math.tan(hFov / 2) / camera.aspect)) / RAD;
+}
+
 const smoothstep = (f) => f * f * (3 - 2 * f);
 
 function pathT() {
@@ -124,7 +135,7 @@ function enterExplore() {
 	if (camera.position.distanceTo(KF[6].pos) > 1.5) {
 		camera.position.copy(KF[6].pos);
 		controls.target.copy(KF[6].tgt);
-		camera.fov = KF[6].fov;
+		camera.fov = aspectFov(KF[6].fov);
 		camera.updateProjectionMatrix();
 	}
 }
@@ -158,7 +169,7 @@ function frame() {
 		const f = smoothT - s;
 		camera.position.lerpVectors(KF[s].pos, KF[s + 1].pos, f);
 		controls.target.lerpVectors(KF[s].tgt, KF[s + 1].tgt, f);
-		camera.fov = KF[s].fov + (KF[s + 1].fov - KF[s].fov) * f;
+		camera.fov = aspectFov(KF[s].fov + (KF[s + 1].fov - KF[s].fov) * f);
 		// gentle drift while parked on the hero fold
 		if (!reducedMotion && smoothT < 0.5) {
 			const drift = clock.elapsedTime * 0.05;
@@ -170,11 +181,11 @@ function frame() {
 	} else if (interiorView) {
 		camera.position.lerp(car.interiorEye, Math.min(1, dt * 4));
 		controls.target.lerp(car.interiorTarget, Math.min(1, dt * 4));
-		camera.fov += (62 - camera.fov) * Math.min(1, dt * 4);
+		camera.fov += (aspectFov(62) - camera.fov) * Math.min(1, dt * 4);
 		camera.updateProjectionMatrix();
 		camera.lookAt(controls.target);
 	} else {
-		camera.fov += (38 - camera.fov) * Math.min(1, dt * 4);
+		camera.fov += (aspectFov(38) - camera.fov) * Math.min(1, dt * 4);
 		camera.updateProjectionMatrix();
 		controls.update();
 	}
