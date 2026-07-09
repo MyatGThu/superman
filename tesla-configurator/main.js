@@ -60,11 +60,11 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const KF = [
 	{ pos: V(6.6, 2.3, 8.0), tgt: V(0, 1.3, 0), fov: 36 },        // 0 hero: sky-dominant, car in the bottom third
 	{ pos: V(9.3, 1.2, 1.65), tgt: V(0, 0.8, 1.35), fov: 32 },    // 1 full side profile right of the panel
-	{ pos: V(2.9, 1.9, -6.15), tgt: V(-0.5, 0.85, -1.45), fov: 36 },// 2 rear three-quarter, hatch clear of the panel
+	{ pos: V(2.6, 1.9, -6.3), tgt: V(-0.75, 0.85, -1.55), fov: 36 },// 2 rear three-quarter, hatch clear of the panel
 	{ pos: car.interiorEye, tgt: car.interiorTarget, fov: 62 },   // 3 driver's seat
 	{ pos: V(2.5, 1.5, -1.3), tgt: V(1.1, 1.0, -1.7), fov: 46 },  // 4 exit via rear quarter
 	{ pos: V(2.35, 1.2, -4.05), tgt: V(0.5, 1.0, -2.3), fov: 40 },// 5 charge port
-	{ pos: V(6.4, 2.4, 6.6), tgt: V(-0.7, 0.55, 0), fov: 36 },    // 6 explore: car left, dock clear
+	{ pos: V(6.4, 2.6, 6.6), tgt: V(-0.7, 0.3, 0), fov: 36 },     // 6 explore: car left and high, dock clear
 ];
 const SECTION_KF = [0, 1, 2, 3, 5, 6]; // keyframe index at each section's center
 
@@ -82,7 +82,7 @@ const RAD = Math.PI / 180;
 function aspectFov(fovDeg) {
 	if (camera.aspect >= DESIGN_ASPECT) return fovDeg;
 	const hFov = 2 * Math.atan(Math.tan((fovDeg * RAD) / 2) * DESIGN_ASPECT);
-	return (2 * Math.atan(Math.tan(hFov / 2) / camera.aspect)) / RAD;
+	return Math.min((2 * Math.atan(Math.tan(hFov / 2) / camera.aspect)) / RAD, 100);
 }
 
 const smoothstep = (f) => f * f * (3 - 2 * f);

@@ -302,7 +302,7 @@ h2 {
 	justify-content: flex-end;
 	align-items: center;
 	text-align: center;
-	padding-bottom: 40px;
+	padding-bottom: 150px; /* reserves the footer's height: bottom-rest == composed framing */
 	gap: 26px;
 }
 .explore-head {
@@ -310,7 +310,7 @@ h2 {
 	background: var(--panel);
 	border: 1px solid var(--line);
 	border-radius: 10px;
-	padding: 22px 30px 24px;
+	padding: 18px 28px 20px;
 }
 .explore-head p:not(.wp) { color: var(--body); margin: 0; }
 .explore-head h2 { margin-bottom: 10px; }
@@ -367,6 +367,7 @@ h2 {
 .site-footer {
 	position: relative;
 	z-index: 10;
+	margin-top: -110px;
 	padding: 40px clamp(20px, 5vw, 72px) 48px;
 	font-size: 12.5px;
 	color: var(--body);
@@ -393,7 +394,7 @@ h2 {
 }
 
 /* ---- responsive ---- */
-@media (max-width: 720px) {
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1080px) {
 	.fold { min-height: 100vh; align-items: flex-end; padding-bottom: 6vh; }
 	.fold.hero { align-items: center; padding-bottom: 0; }
 	.panel, .panel-compact {
