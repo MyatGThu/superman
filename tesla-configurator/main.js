@@ -47,11 +47,24 @@ controls.enableZoom = false; // wheel must keep scrolling the page
 controls.minPolarAngle = 0.15;
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.target.set(0, 0.75, 0);
+// OrbitControls sets touch-action:none on the canvas even while disabled,
+// which kills native touch scrolling everywhere (the canvas is the hit
+// target for all empty space). pan-y: vertical swipes scroll the page,
+// horizontal drags orbit in the explore fold.
+canvas.style.touchAction = 'pan-y';
 
 const env = createEnvironment();
 scene.add(env.group);
 
-const car = await createModelY();
+let car;
+try {
+	car = await createModelY();
+} catch (err) {
+	loading.querySelector('.loading-note').textContent =
+		'The Model Y failed to land (asset could not load). Refresh to retry.';
+	loading.querySelector('.loading-fill')?.remove();
+	throw err;
+}
 scene.add(car.group);
 loading.classList.add('done');
 
@@ -128,13 +141,13 @@ function applyTourState(t) {
 function enterExplore() {
 	exploring = true;
 	controls.enabled = !interiorView;
-	['liftgate', 'frunk'].forEach((h) => car.hinges[h].set(false));
+	['liftgate', 'frunk', 'doorFL', 'doorFR', 'doorRL', 'doorRR'].forEach((h) => car.hinges[h].set(false));
 	car.setLights(false);
 	car.setChargePort(false);
 	Object.values(ui).forEach((b) => { if (b !== ui.interior) setPressed(b, false); });
 	// a fast jump (or reduced motion) can land here mid-path — snap to the
 	// explore framing rather than orbiting from wherever the camera was left
-	if (camera.position.distanceTo(KF[6].pos) > 1.5) {
+	if (camera.position.distanceTo(KF[6].pos) > 4) {
 		camera.position.copy(KF[6].pos);
 		controls.target.copy(KF[6].tgt);
 		camera.fov = aspectFov(KF[6].fov);
@@ -164,7 +177,7 @@ function frame() {
 
 	const wasExploring = exploring;
 	if (smoothT > 5.82 && !wasExploring) enterExplore();
-	if (smoothT <= 5.82 && wasExploring) leaveExplore();
+	if (smoothT <= 5.70 && wasExploring) leaveExplore(); // hysteresis: no boundary flicker
 
 	if (!exploring) {
 		applyTourState(smoothT);
@@ -307,6 +320,7 @@ if (!reducedMotion && 'IntersectionObserver' in window) {
 
 // ---------- sizing ----------
 function resize() {
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 2));
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
