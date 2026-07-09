@@ -105,8 +105,7 @@ a.card { color: inherit; text-decoration: none; display: block }
 .brow .name { font-weight: 700; font-size: .95rem }
 .track { height: 16px; background: rgba(216,139,163,.14); border-radius: 999px; overflow: hidden }
 .fill { display: block; height: 100%; border-radius: 999px;
-  background: linear-gradient(90deg, var(--lavender), var(--rose));
-  transition: width 1s cubic-bezier(.2,.8,.3,1) }
+  background: linear-gradient(90deg, var(--lavender), var(--rose)) }
 .brow.best .fill { background: linear-gradient(90deg, #a8dcae, #63b873) }
 .brow .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 800 }
 .best-tag { color: #4e8a58; font-weight: 800; font-size: .8rem }

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Healthy Options — Peachy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -55,6 +56,7 @@ const wrap = document.getElementById("dishes");
 function render(fid, btn) {
   document.querySelectorAll("#filters .pill").forEach(p => p.classList.remove("green"));
   (btn || filterBox.firstChild).classList.add("green");
+  history.replaceState(null, "", fid === "all" ? location.pathname : "#" + fid);
   const test = FILTERS.find(f => f[0] === fid)[2];
   const picks = VENUES.filter(v => test(v.dish))
     .sort((a, b) => b.dish.health - a.dish.health);
@@ -70,6 +72,9 @@ function render(fid, btn) {
     '<p class="lede">Nothing matches that filter today 🌸</p>';
   enhance();
 }
-render("all");
+const fromHash = location.hash.slice(1);
+const startFilter = FILTERS.find(f => f[0] === fromHash) ? fromHash : "all";
+render(startFilter, [...document.querySelectorAll("#filters .pill")]
+  [FILTERS.findIndex(f => f[0] === startFilter)]);
 </script>
 </body></html>

@@ -6,6 +6,8 @@
  * Pages that inject cards after load call enhance() again - it only wires
  * elements it hasn't seen (data-fx marker). */
 
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const io = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
@@ -15,6 +17,7 @@ const io = new IntersectionObserver(entries => {
 function enhance(root = document) {
   root.querySelectorAll(".pop:not([data-fx])").forEach(el => {
     el.dataset.fx = "1";
+    if (REDUCED) return;
     const text = el.textContent;
     el.textContent = "";
     el.setAttribute("aria-label", text);
@@ -35,6 +38,7 @@ function enhance(root = document) {
 
   root.querySelectorAll(".tilt:not([data-fx])").forEach(card => {
     card.dataset.fx = "1";
+    if (REDUCED) return;
     card.addEventListener("pointermove", e => {
       const r = card.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
@@ -52,6 +56,7 @@ enhance();
 const layers = [...document.querySelectorAll("[data-depth]")];
 let px = 0, py = 0;
 function drift() {
+  if (REDUCED) return;
   const sy = scrollY;
   layers.forEach(el => {
     const d = +el.dataset.depth;
