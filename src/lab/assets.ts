@@ -11,18 +11,16 @@ export const MELINA = {
   name: 'Melina Jones Voss',
   /** Approximate character height after normalization, meters. */
   height: 1.66,
-  /** exercise id → animated GLB (mesh + skeleton + one clip) */
+  /** exercise id → animated GLB (mesh + skeleton + one clip).
+   *  Wardrobe: burnt-orange sports bra, charcoal seamless leggings —
+   *  the FURNACE palette, baked into the scan's texture. */
   clips: {
     'air-squat':
-      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/6332283b-8dea-41a6-bd6b-c248fd06aa3a.glb',
+      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/67e36bda-53b0-4cc0-9693-4c512aa148b7.glb',
     'push-up':
-      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/e78a73d7-08dd-4ea1-8e5c-24c88d331455.glb',
-    curl: 'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/375e4c6b-fe9f-4499-8ac1-b7fd127281e6.glb',
+      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/d6a340ab-5b0a-431e-8a84-e4d284e9693e.glb',
+    curl: 'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/2b46277e-c155-4744-bb7d-95033912d30c.glb',
     'kb-swing':
-      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/e980fc87-0e56-452c-a8ff-c034ff936bf1.glb',
-    'sumo-pull':
-      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/77aa0550-5403-4d1b-bb4d-db40f90fea06.glb',
-    situp:
-      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/7f959e28-88c0-4a00-9c33-a4949d45be33.glb',
+      'https://d3u0tzju9qaucj.cloudfront.net/7d051b5a-7bfe-49fe-a484-24e7b3a9458a/830056a4-2544-41dd-a055-1d26197d2901.glb',
   } as Record<string, string>,
 }

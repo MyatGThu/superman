@@ -38,8 +38,14 @@ character turned into a rigged, animated 3D scan:
   movement (mesh + skeleton + clip), hotlinked from the generation CDN and
   LRU-cached at runtime. To self-host, download the GLBs into
   `public/models/` and repoint `src/lab/assets.ts`.
+- **Wardrobe** — gym attire in the brand palette, baked into the scan:
+  burnt-orange sports bra, high-waisted charcoal seamless leggings, black
+  trainers with an orange accent, hair in a tight bun (loose hair
+  reconstructs poorly in 3D).
 - **Melina's movements** — air squat, push-up, biceps curl, kettlebell
-  swing, sumo high pull, sit-up (baked clips, tempo-synced markers). Her
+  swing (baked clips, tempo-synced markers; sumo high pull and sit-up were
+  cut to fit the credit budget when the wardrobe was regenerated — each is
+  one 8-credit `3d_rigging` job away from returning). Her
   working muscles are marked with molten X-ray glow nodes anchored to her
   **actual bones** (fuzzy Mixamo-style bone matching with body-box
   fallback), so labels, markers, and the camera track her anatomy live.
