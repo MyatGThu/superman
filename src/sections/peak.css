@@ -2,12 +2,17 @@
    surface IS the heat. Everything on it is chalk white or coal black;
    no third color competes with the temperature. */
 .peak {
+  /* Bottom-anchored molten radial that fades to transparent at its
+     outer edge, so entering the section warms gradually out of the
+     ambient background. The exit (bottom) edge stays a hard cut —
+     the furnace door slams shut into THE PROOF. */
   background:
     radial-gradient(
-      120% 85% at 50% 115%,
+      130% 100% at 50% 115%,
       var(--c-heat) 0%,
-      var(--c-heat-deep) 52%,
-      color-mix(in oklch, var(--c-heat-deep), var(--c-bg) 46%) 100%
+      var(--c-heat-deep) 48%,
+      color-mix(in oklch, var(--c-heat-deep), transparent 55%) 78%,
+      transparent 100%
     );
   text-align: center;
   align-items: center;
