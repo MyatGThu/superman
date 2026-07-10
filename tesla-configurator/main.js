@@ -151,9 +151,10 @@ function setPressed(btn, on) {
 }
 
 function applyTourState(t) {
+	// liftgate only: the camera faces the tail here, so an open frunk reads
+	// as a glitch poking over the roofline rather than a feature
 	const hatchOpen = t > 1.55 && t < 3.35;
 	car.hinges.liftgate.set(hatchOpen);
-	car.hinges.frunk.set(hatchOpen);
 	const night = t > 4.25 && t < 5.75;
 	if (car.lightsOn !== night) car.setLights(night);
 	car.setChargePort(night);

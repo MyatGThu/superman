@@ -96,30 +96,73 @@ function worldCenter(obj) {
 	return new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3());
 }
 
-// Cut a mesh into segments along world-Z at the given cut planes, bucketing
-// triangles by centroid. Jagged cut edges hide under the pillar trim; this is
-// what lets one full-length glass/DLO strip ride two different doors.
-function splitAtWorldZ(mesh, cuts) {
-	let geo = mesh.geometry.index ? mesh.geometry : mergeVertices(mesh.geometry, 1e-6);
+// Cut a mesh into segments along a world axis at the given cut planes
+// (thresholds DESCENDING). Triangles straddling a plane are CLIPPED with
+// interpolated vertices — centroid bucketing leaves sawtooth edges that hang
+// in midair once a door or the gate swings open. This is what lets one
+// full-length strip ride two different doors, or a full-width lamp bar
+// split between gate and quarters, with a straight seam.
+function splitAtWorld(mesh, axis, cuts) {
+	const geo = mesh.geometry.index ? mesh.geometry : mergeVertices(mesh.geometry, 1e-6);
 	const idx = geo.index.array;
-	const pos = geo.attributes.position;
+	const attrs = geo.attributes;
 	mesh.updateWorldMatrix(true, false);
 	const m = mesh.matrixWorld;
 	const v = new THREE.Vector3();
-	const zones = cuts.length + 1;
-	const buckets = Array.from({ length: zones }, () => []);
-	for (let i = 0; i < idx.length; i += 3) {
-		let z = 0;
-		for (let k = 0; k < 3; k++) z += v.fromBufferAttribute(pos, idx[i + k]).applyMatrix4(m).z;
-		z /= 3;
-		let zone = 0;
-		while (zone < cuts.length && z < cuts[zone]) zone++;
-		buckets[zone].push(idx[i], idx[i + 1], idx[i + 2]);
+	const names = Object.keys(attrs).filter((n) => ['position', 'normal', 'uv'].includes(n));
+
+	function vert(i) {
+		const out = {};
+		for (const n of names) {
+			const a = attrs[n];
+			out[n] = [];
+			for (let k = 0; k < a.itemSize; k++) out[n].push(a.array[i * a.itemSize + k]);
+		}
+		out.w = v.fromBufferAttribute(attrs.position, i).applyMatrix4(m)[axis];
+		return out;
 	}
+	function lerpVert(a, b, t) {
+		const out = {};
+		for (const n of names) out[n] = a[n].map((av, k) => av + (b[n][k] - av) * t);
+		out.w = a.w + (b.w - a.w) * t;
+		return out;
+	}
+	// Sutherland–Hodgman: keep the half-space (w - c) >= 0 or <= 0
+	function clip(poly, c, keepAbove) {
+		const out = [];
+		for (let i = 0; i < poly.length; i++) {
+			const a = poly[i], b = poly[(i + 1) % poly.length];
+			const da = keepAbove ? a.w - c : c - a.w;
+			const db = keepAbove ? b.w - c : c - b.w;
+			if (da >= 0) out.push(a);
+			if ((da >= 0) !== (db >= 0)) out.push(lerpVert(a, b, da / (da - db)));
+		}
+		return out;
+	}
+
+	const zones = cuts.length + 1;
+	const zoneTris = Array.from({ length: zones }, () => []);
+	for (let i = 0; i < idx.length; i += 3) {
+		const tri = [vert(idx[i]), vert(idx[i + 1]), vert(idx[i + 2])];
+		for (let z = 0; z < zones; z++) {
+			let poly = tri;
+			if (z > 0) poly = clip(poly, cuts[z - 1], false); // below the upper plane
+			if (poly.length > 2 && z < cuts.length) poly = clip(poly, cuts[z], true); // above the lower
+			for (let k = 2; k < poly.length; k++) zoneTris[z].push(poly[0], poly[k - 1], poly[k]);
+		}
+	}
+
 	const parts = [];
-	for (const tri of buckets) {
-		if (!tri.length) { parts.push(null); continue; }
-		const piece = new THREE.Mesh(subsetGeometry(geo.attributes, tri), mesh.material);
+	for (const tris of zoneTris) {
+		if (!tris.length) { parts.push(null); continue; }
+		const g = new THREE.BufferGeometry();
+		for (const n of names) {
+			const s = attrs[n].itemSize;
+			const arr = new Float32Array(tris.length * s);
+			tris.forEach((vt, i) => { for (let k = 0; k < s; k++) arr[i * s + k] = vt[n][k]; });
+			g.setAttribute(n, new THREE.BufferAttribute(arr, s));
+		}
+		const piece = new THREE.Mesh(g, mesh.material);
 		piece.castShadow = mesh.castShadow;
 		piece.applyMatrix4(mesh.matrix);
 		parts.push(piece);
@@ -207,9 +250,32 @@ export async function createModelY() {
 	// ---- split merged glass, chrome, and mirrors into islands
 	const meshes = [];
 	root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+	// Interno/Plastico/Brilho_1 are single meshes whose islands span the whole
+	// car (headliner + gate lining + door cards in one) — their merged bbox
+	// centers defeat classification, so they must be split into islands too.
 	const splittable = meshes.filter((o) =>
-		['Carro_Vidros2', 'Carro_Espelhos', 'Carro_Cromado'].includes(o.material?.name));
+		['Carro_Vidros2', 'Carro_Espelhos', 'Carro_Cromado',
+			'Carro_Interno', 'Carro_Plastico', 'Carro_Plastico_Brilho_1'].includes(o.material?.name));
 	for (const m of splittable) splitIslands(m);
+	root.updateMatrixWorld(true);
+
+	// ---- the tail-light bar spans the full width, but on the real car only
+	// its center section is on the liftgate — the outer clusters live on the
+	// quarter panels. Cut the lamp-family pieces at the gate cutline so the
+	// outer thirds can stay put when the gate swings.
+	const LAMP_MATS = ['Carro_Metal_Lanterna_Traseira', 'Carro_Metal_Vermelho', 'Carro_Metal_Vermelho_1',
+		'Carro_Metal_Vermelho_3', 'Carro_Vidro_Vermelho2'];
+	const tailWide = [];
+	root.traverse((o) => {
+		if (!o.isMesh) return;
+		const n = o.material?.name || '';
+		const isTailGlass = n === 'Carro_Vidros2';
+		if (!LAMP_MATS.includes(n) && !isTailGlass) return;
+		const box = new THREE.Box3().setFromObject(o);
+		if (box.getCenter(new THREE.Vector3()).z > -1.45) return;
+		if (box.max.x > 0.66 || box.min.x < -0.66) tailWide.push(o);
+	});
+	for (const m of tailWide) splitAtWorld(m, 'x', [0.62, -0.62]);
 	root.updateMatrixWorld(true);
 
 	// ---- hinge pivots (positions from the model's world-space part layout)
@@ -227,7 +293,9 @@ export async function createModelY() {
 		doorFR: makePivot('doorFR', new THREE.Vector3(-0.74, 0.8, 0.93), 'y', 1.05),
 		doorRL: makePivot('doorRL', new THREE.Vector3(0.74, 0.8, -0.25), 'y', -1.05),
 		doorRR: makePivot('doorRR', new THREE.Vector3(-0.74, 0.8, -0.25), 'y', 1.05),
-		frunk: makePivot('frunk', new THREE.Vector3(0, 1.03, 1.19), 'x', -0.52, 2.2),
+		// 46°: at ~30° the open hood sits nearly edge-on to front cameras and
+		// reads as a missing panel rather than an open one
+		frunk: makePivot('frunk', new THREE.Vector3(0, 1.03, 1.19), 'x', -0.8, 2.2),
 		liftgate: makePivot('liftgate', new THREE.Vector3(0, 1.46, -1.40), 'x', 1.12, 2.2),
 	};
 
@@ -242,8 +310,10 @@ export async function createModelY() {
 		const matName = mesh.material?.name || '';
 		const side = c.x > 0 ? 'L' : 'R';
 
-		// hood (paint panel high on the nose, centered)
+		// hood (paint panel high on the nose, centered) and the chrome T badge
+		// on its leading edge — the badge is a separate chrome island
 		if (matName === 'Carro_Pintura' && c.z > 1.2 && c.y > 0.8 && ax < 0.3) return 'frunk';
+		if (matName === 'Carro_Cromado' && c.z > 2.0 && c.y > 0.7 && ax < 0.2) return 'frunk';
 		// liftgate: paint / lamps / red lens / chrome / rear glass at the tail
 		const gateMat = matName === 'Carro_Pintura' || matName.startsWith('Carro_Metal_Vermelho') ||
 			matName === 'Carro_Metal_Lanterna_Traseira' || matName === 'Carro_Vidro_Vermelho2' ||
@@ -252,9 +322,21 @@ export async function createModelY() {
 			// quarter panels stay put — but spoiler corner tips (high, near the
 			// x edges) travel with the gate or they'd hover once it swings open
 			if (matName === 'Carro_Pintura' && ax > 0.55 && c.y < 1.15) return null;
+			// outer lamp clusters are quarter-mounted (pieces X-cut at ±0.62)
+			const lampish = matName.startsWith('Carro_Metal_Vermelho') ||
+				matName === 'Carro_Metal_Lanterna_Traseira' || matName === 'Carro_Vidro_Vermelho2';
+			if (lampish && ax > 0.62) return null;
 			return 'liftgate';
 		}
 		if (matName === 'Carro_Vidros2' && c.z < -1.48 && c.y > 1.1 && ax < 0.5) return 'liftgate'; // rear glass
+		// gate furniture the material list misses (raycast-audited): interior
+		// lining panel, glossy garnish strip, glass edge islands, spoiler trim.
+		// y/z/x windows keep bumper trim, quarter glass and the roof fin static.
+		if (matName === 'Carro_Interno' && c.z < -1.7 && c.y > 0.9 && ax < 0.55) return 'liftgate';
+		if (matName === 'Carro_Plastico_Brilho_1' && c.z < -1.7 && c.y > 0.7) return 'liftgate';
+		if (matName === 'Carro_Vidros2' && c.z < -1.7 && c.y > 0.9 && ax < 0.62) return 'liftgate';
+		if (matName === 'Carro_Plastico' && c.z < -1.5 && c.y > 1.15 && c.y < 1.45 && ax < 0.6) return 'liftgate';
+		if (matName === 'Carro_Plastico' && c.z < -1.9 && c.y > 0.7) return 'liftgate'; // gate side trims
 		// door-band pieces (panels, windows, belt trim, handles, chrome DLO)
 		const doorish = ['Carro_Pintura', 'Carro_Vidros2', 'Carro_Plastico_Brilho', 'Carro_Cromado'].includes(matName);
 		if (doorish && ax > 0.55 && c.y > 0.35 && box.min.z < A_PILLAR + 0.3 && box.max.z > C_PILLAR - 0.4) {
@@ -289,7 +371,7 @@ export async function createModelY() {
 		if (dest === 'split') {
 			// zones (z descending): beyond-A | front door | rear door | quarter
 			const side = worldCenter(mesh).x > 0 ? 'L' : 'R'; // before detach
-			const parts = splitAtWorldZ(mesh, [A_PILLAR, B_PILLAR, C_PILLAR]);
+			const parts = splitAtWorld(mesh, 'z', [A_PILLAR, B_PILLAR, C_PILLAR]);
 			if (parts[1]) place(parts[1], 'doorF' + side);
 			if (parts[2]) place(parts[2], 'doorR' + side);
 			// parts[0] (A-pillar run) and parts[3] (quarter) stay static
@@ -370,9 +452,14 @@ export async function createModelY() {
 	}
 	const frunkTub = tub(1.14, 0.44, 0.86);
 	frunkTub.position.set(0, 0.66, 1.63);
-	const cargoTub = tub(1.44, 0.68, 1.2);
-	cargoTub.position.set(0, 0.86, -1.4);
+	const cargoTub = tub(1.44, 0.68, 1.02); // front wall hides behind the rear seat;
+	cargoTub.position.set(0, 0.86, -1.46); // rear wall clear of the model's inner panel (z-fighting)
 	group.add(frunkTub, cargoTub);
+
+	// ponytail: the lamp X-cut leaves a small open cross-section at ±0.62
+	// (hollow housing interiors, a few cm, close-up only). Capping it needs
+	// contour-capped clipping; plates poke past the tapering gate as flags.
+	// Accepted as-is — revisit with real cap triangulation if it ever matters.
 
 	// cowl cover: hides the raw wiper-well geometry between frunk tub and
 	// windshield base (a closed plastic panel, like the real HEPA cowl)
@@ -383,16 +470,25 @@ export async function createModelY() {
 	cowl.position.set(0, 0.82, 1.08);
 	group.add(cowl);
 
-	// the body shell is single-sided: door inner skins, the hood underside and
-	// the gate inner all vanish when opened. Render their back faces too.
-	paintMat.side = THREE.DoubleSide;
-	group.traverse((o) => {
-		if (!o.isMesh) return;
-		const n = o.material?.name || '';
-		if (n === 'Carro_Plastico_Brilho' || n === 'Carro_Cromado' || n === 'Carro_Plastico' || n === 'Carro_Interno') {
-			o.material.side = THREE.DoubleSide;
+	// the body shell is single-sided, so door inner skins, the hood underside
+	// and the gate inner vanish when opened. Give the MOVING pieces two-sided
+	// material clones; statics stay single-sided — their backfaces shade dark
+	// and read as black wedges at the panel gaps otherwise.
+	const DS_MATS = ['Carro_Pintura', 'Carro_Plastico_Brilho', 'Carro_Cromado', 'Carro_Plastico', 'Carro_Interno'];
+	const dsClones = new Map();
+	let paintMatDS = null;
+	Object.values(pivots).forEach((p) => p.traverse((o) => {
+		if (!o.isMesh || Array.isArray(o.material)) return;
+		const mat = o.material;
+		if (!DS_MATS.includes(mat?.name || '')) return;
+		if (!dsClones.has(mat)) {
+			const c = mat.clone();
+			c.side = THREE.DoubleSide;
+			dsClones.set(mat, c);
+			if (mat === paintMat) paintMatDS = c;
 		}
-	});
+		o.material = dsClones.get(mat);
+	}));
 
 	// ---- cabin touchscreen (the model's interior has no lit display)
 	const screenGroup = new THREE.Group();
@@ -424,7 +520,7 @@ export async function createModelY() {
 	// ---- charge port LED (left rear quarter; port door is merged into the body)
 	const portLedMat = new THREE.MeshStandardMaterial({ color: 0x0e2a14, emissive: 0x36ff6e, emissiveIntensity: 0 });
 	const portLed = new THREE.Mesh(new THREE.CircleGeometry(0.022, 16), portLedMat);
-	portLed.position.set(0.845, 1.05, -1.93);
+	portLed.position.set(0.838, 1.05, -1.93); // tucked to the panel — floats at some angles otherwise
 	portLed.rotation.y = Math.PI / 2 + 0.3;
 	group.add(portLed);
 
@@ -451,7 +547,7 @@ export async function createModelY() {
 	let charging = false;
 	let chargeT = 0;
 
-	function setPaint(hex) { paintMat.color.set(hex); }
+	function setPaint(hex) { paintMat.color.set(hex); if (paintMatDS) paintMatDS.color.set(hex); }
 	function setLights(on) {
 		lightsOn = on;
 		lampMats.head.forEach((m) => { m.emissiveIntensity = on ? 2.8 : 0.05; });
