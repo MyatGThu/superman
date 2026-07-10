@@ -50,6 +50,66 @@ function arms(rig: Rig, f: number, e: number) {
   }
 }
 
+/** A movement performed by the scanned character: same panel fields as
+ *  a procedural Exercise, but the motion is a baked animation clip
+ *  (GLB URL in assets.ts) instead of a pose() function. */
+export interface LiveMovement {
+  id: string
+  name: string
+  cue: string
+  tempo: number // seconds per rep — drives the muscle-marker pulse
+  muscles: MuscleId[]
+  viewY?: number
+}
+
+// Melina's set — mapped to the animation library's WorkingOut clips.
+export const MELINA_MOVEMENTS: LiveMovement[] = [
+  {
+    id: 'air-squat',
+    name: 'Air squat',
+    cue: 'Hips back, chest proud, stand up like you mean it.',
+    tempo: 2.6,
+    muscles: ['quads', 'glutes', 'core'],
+  },
+  {
+    id: 'push-up',
+    name: 'Push-up',
+    cue: 'One straight line, chest to the floor, floor to arm’s length.',
+    tempo: 2.4,
+    viewY: 0.45,
+    muscles: ['pecs', 'triceps', 'core'],
+  },
+  {
+    id: 'curl',
+    name: 'Biceps curl',
+    cue: 'Elbows pinned. The weight travels; you don’t.',
+    tempo: 2.2,
+    muscles: ['biceps'],
+  },
+  {
+    id: 'kb-swing',
+    name: 'Kettlebell swing',
+    cue: 'It’s a hinge, not a squat — the hips throw it, the arms steer.',
+    tempo: 1.8,
+    muscles: ['hams', 'glutes', 'core'],
+  },
+  {
+    id: 'sumo-pull',
+    name: 'Sumo high pull',
+    cue: 'Wide stance, rip it from the floor to your collarbone.',
+    tempo: 2.2,
+    muscles: ['delts', 'hams', 'core'],
+  },
+  {
+    id: 'situp',
+    name: 'Sit-up',
+    cue: 'Curl up rib by rib. The floor is the only rest you get.',
+    tempo: 2.4,
+    viewY: 0.4,
+    muscles: ['core', 'quads'],
+  },
+]
+
 export const EXERCISES: Exercise[] = [
   {
     id: 'squat',
@@ -162,8 +222,8 @@ export const EXERCISES: Exercise[] = [
   },
 ]
 
-/** Random exercise, never repeating the current one. */
-export function drawExercise(excludeId?: string): Exercise {
-  const pool = EXERCISES.filter((e) => e.id !== excludeId)
+/** Random movement from a library, never repeating the current one. */
+export function drawFrom<T extends { id: string }>(list: T[], excludeId?: string): T {
+  const pool = list.filter((e) => e.id !== excludeId)
   return pool[Math.floor(Math.random() * pool.length)]
 }

@@ -21,11 +21,12 @@ Sections follow a real workout arc, so the sequence encodes truth:
 2. **THE WORK** — three sets (features), numbered because sets ARE a sequence:
    SET 01 The Log (interactive set logger) · SET 02 The Engine
    (self-drawing progression chart) · SET 03 The Clock (working rest timer)
-   — then **THE LAB** (heat 0.8): a 3D movement library. A procedural iron
-   mannequin (man/woman by measured proportions) performs a randomly drawn
-   exercise on an auto-orbiting stage; molten muscle pads fire with the
-   rep; the camera dives onto the primary mover. Styled as product UI —
-   it is the seed of the app.
+   — then **THE LAB** (heat 0.8): a 3D movement library. The performer is
+   Melina Jones Voss, a Soul-2-generated rigged 3D scan running baked
+   exercise clips; her working muscles are marked with molten X-ray nodes
+   anchored to her bones. The procedural iron mannequin (man/woman)
+   remains as alternate performers and the automatic fallback. The camera
+   dives onto the primary mover. Styled as product UI — the seed of the app.
 3. **PEAK** — drenched molten; hold-to-break-your-limit interaction
 4. **THE PROOF** — testimonials as training-log entries
 5. **RECOVERY** — breathing pacer, honest CTA, footer

@@ -29,19 +29,26 @@ physically hold a button through the sticking point to break a PR.
 ## The Lab (3D)
 
 The Lab is the seed of the Furnace app: an interactive 3D exercise viewer.
+Its lead performer is **Melina Jones Voss** — a Higgsfield **Soul 2**
+character turned into a rigged, animated 3D scan:
 
-- **Choose your build** — man / woman swap a fully **procedural articulated
-  mannequin** (capsules + spheres, built in code from measured proportions —
-  no downloaded models, no rig licenses). It's deliberately a training-room
-  dummy, not a fake human.
-- **A random movement is drawn** — six procedural exercises (back squat,
-  deadlift, push-up, overhead press, biceps curl, bent-over row), each a
-  `pose(rig, p)` function writing joint angles per rep-cycle, with
-  forward-kinematics helpers that keep the feet planted and the hands under
-  the shoulders. Barbell / dumbbell props attach per movement.
-- **Muscles identify themselves** — ten "muscle pads" bolted onto the body
-  ignite molten *with the rep* (contraction glows hardest), with floating
-  labels projected from 3D each frame.
+- **Generation pipeline**: one Soul 2 full-body A-pose image → Meshy
+  `image_to_3d` (textured, PBR, auto-rigged humanoid skeleton) → six
+  `3d_rigging` jobs applying WorkingOut animation clips. One GLB per
+  movement (mesh + skeleton + clip), hotlinked from the generation CDN and
+  LRU-cached at runtime. To self-host, download the GLBs into
+  `public/models/` and repoint `src/lab/assets.ts`.
+- **Melina's movements** — air squat, push-up, biceps curl, kettlebell
+  swing, sumo high pull, sit-up (baked clips, tempo-synced markers). Her
+  working muscles are marked with molten X-ray glow nodes anchored to her
+  **actual bones** (fuzzy Mixamo-style bone matching with body-box
+  fallback), so labels, markers, and the camera track her anatomy live.
+- **The dummies remain** — the fully procedural articulated mannequin
+  (man / woman, capsules + spheres, `pose(rig, p)` joint choreography,
+  barbell/dumbbell props, ignitable muscle pads) is the second and third
+  performer — and the **automatic fallback**: if Melina's scan can't load
+  (offline, CORS, CDN gone), the Lab swaps to the dummy with an honest
+  note. The section can never go blank.
 - **Rotation, zoom, focus** — the stage auto-orbits (drag to take the
   wheel), tapping a target chip flies the camera onto that muscle, and one
   rep after each draw the camera dives onto the primary mover by itself.
@@ -90,14 +97,18 @@ src/
     plates.check.ts         runnable assertions for plates.ts (npm run check)
   lab/                      the 3D movement library (lazy chunk)
     muscles.ts              the ten muscle groups + sexes
-    exercises.ts            procedural movement choreography: pose(rig, p)
-                            joint angles + FK helpers (planted feet, plumb
-                            arms), tempo, props, target muscles
+    assets.ts               Melina's generated GLB URLs (one per movement)
+    character.ts            GLB loader: normalize height/ground, play the
+                            baked clip, resolve muscle anchors to bones
+    exercises.ts            both movement libraries: Melina's clip-backed
+                            set + the mannequin's procedural pose(rig, p)
+                            choreography with FK helpers
     mannequin.ts            procedural articulated figure: skeleton, sexed
                             proportions, muscle pads, barbell/dumbbells
-    stage.ts                three.js scene: lights, orbit + auto-rotate,
-                            rep clock, pad ignition, camera fly-to-muscle,
-                            label projection, visibility-gated rAF
+    stage.ts                three.js scene: performers (scan + mannequin),
+                            lights, orbit + auto-rotate, rep clock, pad
+                            ignition + glow markers, camera fly-to-muscle,
+                            label projection, clip cache, auto-fallback
   components/
     EffortHud.tsx/.css      fixed instrument strip; DOM written via refs at
                             scroll frequency — never through React state
