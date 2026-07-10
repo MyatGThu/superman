@@ -1,0 +1,243 @@
+/* ------------------------------------------------------------------
+   Furnace — base styles
+   Minimal reset, global element defaults, and the shared section
+   shell. Section-specific styling lives next to each section file.
+   ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  /* --ambient warms with --heat: the page's temperature IS the design. */
+  background-color: var(--ambient);
+  color: var(--c-ink);
+  font-family: var(--f-mono);
+  font-size: var(--t-body);
+  font-weight: 380; /* light-on-dark: step body weight up a touch */
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip; /* kinetic type flirts with the viewport edge */
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--f-display);
+  font-weight: 850;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  text-transform: uppercase;
+}
+
+p {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--c-night-lift);
+  text-underline-offset: 0.2em;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  /* Buttons keep a generous hit area even when visually small. */
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--c-heat);
+  color: var(--c-poster-ink);
+}
+
+/* Skip link — first focusable element on the page. */
+.skip-link {
+  position: fixed;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: var(--z-nav);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  font-size: var(--t-small);
+  transform: translateY(-300%);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* Fixed chrome: the wordmark is the only navigation. */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--z-nav);
+  padding: var(--sp-4) var(--gutter);
+  pointer-events: none; /* only the wordmark itself is interactive */
+}
+
+.wordmark {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-weight: 700;
+  font-size: var(--t-small);
+  letter-spacing: 0.22em;
+  text-decoration: none;
+  color: var(--c-ink);
+  transition: opacity var(--dur-med) var(--ease-out);
+}
+
+/* Once the warm-up is over the wordmark steps aside — it would collide
+   with section headings, and the HUD carries the brand from here.
+   ([data-phase] guards the no-JS case: no attribute, no hiding.) */
+:root[data-phase]:not([data-phase='WARM-UP']) .wordmark {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The coal: a small block that runs at the page's temperature. */
+.wordmark-coal {
+  width: 0.6em;
+  height: 0.6em;
+  background: var(--glow);
+  box-shadow: 0 0 calc(var(--heat) * 14px) var(--glow);
+}
+
+/* Shared section shell: full-viewport beats with a consistent gutter.
+   Each section is one "moment" of the workout — one idea per fold. */
+.sect {
+  position: relative;
+  padding: var(--sect-pad) var(--gutter);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sect-inner {
+  width: min(100%, 72rem);
+  margin-inline: auto;
+}
+
+/* Lead paragraph under each section heading. */
+.lead {
+  font-size: var(--t-lead);
+  color: var(--c-muted);
+  max-width: 46ch;
+}
+
+/* Primary action: molten fill, chalk text (Helmholtz–Kohlrausch: white
+   text on saturated fills). Shared by the hero CTA and the demos. */
+.btn-hot {
+  display: inline-block;
+  padding: var(--sp-3) var(--sp-8);
+  background: var(--c-heat-deep);
+  border: 1px solid color-mix(in oklch, var(--c-heat), transparent 35%);
+  color: var(--c-ink);
+  font-weight: 600;
+  font-size: var(--t-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-med) var(--ease-out);
+}
+
+.btn-hot:hover:not(:disabled) {
+  background: oklch(0.5 0.16 38);
+  box-shadow: 0 0 28px color-mix(in oklch, var(--c-heat), transparent 55%);
+}
+
+.btn-hot:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Data label — short all-caps mono needs open tracking. */
+.data-label {
+  font-size: var(--t-tiny);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+/* ---- shared scaffolding for the three working sets ---- */
+
+/* Giant structural numeral: sets ARE a numbered sequence in training,
+   so the number is information, not decoration. Outlined so it reads
+   as environment, not content. */
+.set-numeral {
+  position: absolute;
+  top: var(--sect-pad);
+  right: var(--gutter);
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(5rem, 16vw, 11rem);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--c-line);
+  user-select: none;
+}
+
+/* Asymmetric two-column set layout; SET 03 flips it for rhythm. */
+.set-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  gap: clamp(var(--sp-8), 6vw, var(--sp-16));
+  align-items: center;
+}
+
+.set-copy h2 {
+  font-size: var(--t-h2);
+  margin-bottom: var(--sp-6);
+}
+
+@media (max-width: 900px) {
+  .set-grid {
+    grid-template-columns: 1fr;
+  }
+  .set-numeral {
+    font-size: clamp(4rem, 22vw, 7rem);
+    top: calc(var(--sect-pad) * 0.4);
+  }
+}
+
+/* Reduced motion: kill movement globally; heat still changes color
+   (meaning, not motion) and each component swaps in a static state. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

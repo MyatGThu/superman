@@ -1,0 +1,75 @@
+/* THE PROOF — a chalk logbook wall. Entries alternate their indent so
+   the column reads like handwriting down a page, not a card grid. */
+
+.proof h2 {
+  font-size: var(--t-h2);
+  margin-bottom: var(--sp-12);
+}
+
+.proof-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  max-width: 56rem;
+}
+
+.proof-entry {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: var(--sp-4);
+  padding-top: var(--sp-6);
+  border-top: 1px solid var(--c-line);
+}
+
+/* the handwriting drift: every other entry steps right */
+.proof-entry:nth-child(even) {
+  margin-left: clamp(0rem, 8vw, 6rem);
+}
+
+.proof-stamp {
+  padding-top: 0.35em; /* optically align with the quote's first line */
+}
+
+.proof-entry blockquote {
+  margin: 0;
+}
+
+.proof-entry blockquote p {
+  font-size: 1.125rem;
+  font-weight: 480;
+  max-width: 44ch;
+  margin-bottom: var(--sp-2);
+}
+
+.proof-who {
+  font-size: var(--t-small);
+  color: var(--c-muted);
+}
+
+/* Reveal enhancement (see Proof.tsx): visible by default, animated
+   only when .js-anim is present. */
+.proof-list.js-anim .proof-entry {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+.proof-list.js-anim.is-in .proof-entry {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+
+@media (max-width: 640px) {
+  .proof-entry {
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+  }
+  .proof-entry:nth-child(even) {
+    margin-left: 0;
+  }
+}

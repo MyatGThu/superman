@@ -1,0 +1,121 @@
+/* PEAK — the drenched section. The page's one maximal moment: the
+   surface IS the heat. Everything on it is chalk white or coal black;
+   no third color competes with the temperature. */
+.peak {
+  background:
+    radial-gradient(
+      120% 85% at 50% 115%,
+      var(--c-heat) 0%,
+      var(--c-heat-deep) 52%,
+      color-mix(in oklch, var(--c-heat-deep), var(--c-bg) 46%) 100%
+    );
+  text-align: center;
+  align-items: center;
+  overflow: clip; /* sparks stay inside the furnace */
+}
+
+.peak-sparks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.peak-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The last 45% of the hold shakes the whole stage — the grind. */
+.peak-stage.is-straining {
+  animation: peak-strain 90ms linear infinite;
+}
+
+@keyframes peak-strain {
+  25% {
+    transform: translate(1.5px, -1px);
+  }
+  50% {
+    transform: translate(-1.5px, 1px);
+  }
+  75% {
+    transform: translate(1px, 1.5px);
+  }
+}
+
+.peak-title {
+  font-size: var(--t-display);
+  font-stretch: 118%;
+  margin-bottom: var(--sp-6);
+}
+
+.peak-lead {
+  font-size: var(--t-lead);
+  color: color-mix(in oklch, var(--c-ink), transparent 12%);
+  max-width: 44ch;
+  margin-bottom: var(--sp-12);
+}
+
+/* Hold-to-break: the fill floods the button with coal as you grind.
+   --charge (0…1) is written by the rAF loop in Peak.tsx. */
+.peak-hold {
+  --charge: 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 72px;
+  padding: var(--sp-4) clamp(var(--sp-8), 8vw, var(--sp-16));
+  border: 2px solid var(--c-ink);
+  color: var(--c-ink);
+  font-weight: 700;
+  font-size: var(--t-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  touch-action: none; /* holding must not scroll the page on touch */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.peak-hold-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--charge));
+  background: var(--c-poster-ink);
+}
+
+.peak-hold-label {
+  position: relative;
+}
+
+.peak-hold:hover {
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--c-ink), transparent 75%);
+}
+
+/* Result line: reserve the space so breaking never shifts layout. */
+.peak-result {
+  min-height: 2.2em;
+  margin-top: var(--sp-8);
+  font-size: var(--t-body);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+}
+
+.peak-result-chip {
+  display: inline-block;
+  padding: 0.1em 0.6em;
+  margin-right: 0.4em;
+  background: var(--c-poster-ink);
+  color: var(--c-heat);
+  font-size: var(--t-small);
+  font-weight: 720;
+  letter-spacing: 0.14em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peak-stage.is-straining {
+    animation: none;
+  }
+}
