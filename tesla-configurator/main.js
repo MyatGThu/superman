@@ -100,8 +100,8 @@ function aspectFov(fovDeg) {
 
 const smoothstep = (f) => f * f * (3 - 2 * f);
 
-function pathT() {
-	const vc = window.scrollY + window.innerHeight / 2;
+function pathT(scrollY) {
+	const vc = scrollY + window.innerHeight / 2;
 	if (vc <= anchors[0]) return SECTION_KF[0];
 	for (let i = 0; i < anchors.length - 1; i++) {
 		if (vc < anchors[i + 1]) {
@@ -110,6 +110,27 @@ function pathT() {
 		}
 	}
 	return SECTION_KF[SECTION_KF.length - 1];
+}
+
+// GSAP drives the scroll feel: a scrubbed proxy trails the real scroll bar
+// with ~1s of inertia, so the camera glides through the keyframe path
+// instead of tracking every wheel notch. Falls back to the exponential
+// chase in frame() if GSAP is unavailable.
+const gsapOn = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined' && !reducedMotion;
+const scrollProxy = { y: window.scrollY };
+if (gsapOn) {
+	gsap.registerPlugin(ScrollTrigger);
+	gsap.to(scrollProxy, {
+		y: () => Math.max(1, document.documentElement.scrollHeight - window.innerHeight),
+		ease: 'none',
+		scrollTrigger: {
+			trigger: document.body,
+			start: 'top top',
+			end: 'bottom bottom',
+			scrub: 1.1,
+			invalidateOnRefresh: true,
+		},
+	});
 }
 
 // ---------- tour state (scroll-driven, reversible) ----------
@@ -172,8 +193,12 @@ const heroCopy = document.querySelector('.hero-copy');
 function frame() {
 	requestAnimationFrame(frame);
 	const dt = Math.min(clock.getDelta(), 0.1);
-	const t = pathT();
-	smoothT = reducedMotion ? t : smoothT + (t - smoothT) * Math.min(1, dt * 4.2);
+	if (gsapOn) {
+		smoothT = pathT(scrollProxy.y); // GSAP's scrub supplies the smoothing
+	} else {
+		const t = pathT(window.scrollY);
+		smoothT = reducedMotion ? t : smoothT + (t - smoothT) * Math.min(1, dt * 4.2);
+	}
 
 	const wasExploring = exploring;
 	if (smoothT > 5.82 && !wasExploring) enterExplore();
@@ -206,10 +231,10 @@ function frame() {
 		controls.update();
 	}
 
-	// hero parallax: headline drifts slower than the page
-	if (!reducedMotion && window.scrollY < window.innerHeight * 1.5) {
+	// hero parallax without GSAP: headline drifts slower than the page
+	if (!gsapOn && !reducedMotion && window.scrollY < window.innerHeight * 1.5) {
 		const y = window.scrollY;
-		heroCopy.style.transform = `translateY(calc(var(--hero-offset) + ${y * 0.3}px))`;
+		heroCopy.style.transform = `translateY(${y * 0.3}px)`;
 		heroCopy.style.opacity = String(Math.max(0, 1 - y / (window.innerHeight * 0.55)));
 	}
 
@@ -299,22 +324,76 @@ function updateRail() {
 }
 window.addEventListener('scroll', updateRail, { passive: true });
 
-// ---------- panel reveals (visible by default; JS adds the settle) ----------
-if (!reducedMotion && 'IntersectionObserver' in window) {
-	const revealables = document.querySelectorAll('.panel, .explore-head, .dock');
-	const io = new IntersectionObserver((entries) => {
-		entries.forEach((e) => {
-			if (e.isIntersecting) {
-				e.target.classList.remove('will-reveal');
-				io.unobserve(e.target);
-			}
+// ---------- scroll choreography (GSAP; page is fully visible without it) ----------
+if (gsapOn) {
+	// hero: intro rise on load, then the copy drifts down slower than the page
+	// (parallax) and dissolves; the scroll hint goes first
+	gsap.from('.hero-copy', { y: 34, opacity: 0, duration: 1.2, ease: 'power3.out', delay: 0.15 });
+	gsap.to('.hero-copy > *', {
+		y: () => window.innerHeight * 0.22,
+		autoAlpha: 0,
+		ease: 'power1.in',
+		scrollTrigger: { trigger: '.hero', start: 'top top', end: '80% top', scrub: true },
+	});
+	gsap.to('.scroll-hint', {
+		autoAlpha: 0,
+		ease: 'none',
+		scrollTrigger: { trigger: '.hero', start: 'top top', end: '22% top', scrub: true },
+	});
+
+	// waypoint panels: label → headline → copy → stats settle in, and play
+	// back out in reverse when the tour rewinds
+	document.querySelectorAll('.panel').forEach((panel) => {
+		const bits = panel.querySelectorAll('.wp, h2, p, .stats > div');
+		gsap.from(bits, {
+			y: 26,
+			opacity: 0,
+			duration: 0.85,
+			ease: 'power3.out',
+			stagger: 0.09,
+			scrollTrigger: { trigger: panel, start: 'top 78%', toggleActions: 'play none none reverse' },
 		});
-	}, { threshold: 0.25 });
-	revealables.forEach((el) => {
-		if (el.getBoundingClientRect().top > window.innerHeight) {
-			el.classList.add('will-reveal');
-			io.observe(el);
-		}
+	});
+
+	// spec numbers count up as their panel arrives
+	document.querySelectorAll('.stats dd').forEach((dd) => {
+		const node = [...dd.childNodes].find((n) => n.nodeType === 3 && /\d/.test(n.nodeValue));
+		if (!node) return;
+		const full = node.nodeValue;
+		const m = full.match(/([\d,]+(?:\.\d+)?)/);
+		if (!m) return;
+		const target = parseFloat(m[1].replace(/,/g, ''));
+		const decimals = (m[1].split('.')[1] || '').length;
+		const counter = { v: 0 };
+		gsap.to(counter, {
+			v: target,
+			duration: 1.3,
+			ease: 'power2.out',
+			scrollTrigger: { trigger: dd, start: 'top 85%' },
+			onUpdate() {
+				node.nodeValue = full.replace(
+					m[1],
+					counter.v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+				);
+			},
+		});
+	});
+
+	// explore fold: headline card, then the controls pop in one by one
+	gsap.from('.explore-head', {
+		y: 30,
+		opacity: 0,
+		duration: 0.8,
+		ease: 'power3.out',
+		scrollTrigger: { trigger: '#explore', start: 'top 65%', toggleActions: 'play none none reverse' },
+	});
+	gsap.from('.dock .swatch, .dock .ctrl', {
+		y: 16,
+		opacity: 0,
+		duration: 0.5,
+		ease: 'power2.out',
+		stagger: 0.045,
+		scrollTrigger: { trigger: '.dock', start: 'top 92%', toggleActions: 'play none none reverse' },
 	});
 }
 
@@ -337,7 +416,7 @@ frame();
 // test hook (harmless in production, load-bearing for automated checks)
 window.__page = {
 	camera, controls, car, env,
-	get t() { return pathT(); },
+	get t() { return pathT(window.scrollY); },
 	get smoothT() { return smoothT; },
 	get exploring() { return exploring; },
 };

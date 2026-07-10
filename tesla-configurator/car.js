@@ -188,6 +188,7 @@ export async function createModelY() {
 				clearcoat: 1, clearcoatRoughness: 0.08,
 			});
 			paintMat.name = 'Carro_Pintura'; // assign() classifies by material name
+			paintMat.envMapIntensity = 1.2;
 		}
 		if (name.startsWith('Carro_Metal_Farol')) lampMats.head.push(o.material);
 		if (name === 'Carro_Metal_Lanterna_Traseira' || name === 'Carro_Metal_Vermelho' || name === 'Carro_Metal_Vermelho_1') lampMats.tail.push(o.material);
@@ -330,6 +331,68 @@ export async function createModelY() {
 	}
 	Object.values(pivots).forEach(consolidate);
 	consolidate(root);
+
+	// ---- interior furnishing: the GLB is a display shell, so the frunk and
+	// cargo bay read as voids once the hood/hatch swing open. A BackSide box
+	// renders only its interior faces — whichever wall you look through goes
+	// invisible — so one box per bay reads as a carpet-lined tub from any angle.
+	const fiberCanvas = document.createElement('canvas');
+	fiberCanvas.width = fiberCanvas.height = 128;
+	{
+		const fctx = fiberCanvas.getContext('2d');
+		fctx.fillStyle = '#808080';
+		fctx.fillRect(0, 0, 128, 128);
+		let s = 7;
+		for (let i = 0; i < 9000; i++) {
+			s = (s * 16807) % 2147483647;
+			const v = 96 + (s % 64);
+			fctx.fillStyle = `rgb(${v},${v},${v})`;
+			fctx.fillRect(s % 128, (s >> 7) % 128, 1, 1);
+		}
+	}
+	const fiberTex = new THREE.CanvasTexture(fiberCanvas);
+	fiberTex.wrapS = fiberTex.wrapT = THREE.RepeatWrapping;
+	fiberTex.repeat.set(6, 6);
+	const tubWall = new THREE.MeshStandardMaterial({
+		color: 0x2a2c32, roughness: 0.97, side: THREE.BackSide,
+		bumpMap: fiberTex, bumpScale: 0.5,
+	});
+	const tubFloor = new THREE.MeshStandardMaterial({
+		color: 0x34373e, roughness: 0.95, side: THREE.BackSide,
+		bumpMap: fiberTex, bumpScale: 0.5,
+	});
+	// BoxGeometry group order: +x, -x, +y, -y, +z, -z — index 3 is the floor
+	function tub(w, h, d) {
+		return new THREE.Mesh(
+			new THREE.BoxGeometry(w, h, d),
+			[tubWall, tubWall, tubWall, tubFloor, tubWall, tubWall]
+		);
+	}
+	const frunkTub = tub(1.14, 0.44, 0.86);
+	frunkTub.position.set(0, 0.66, 1.63);
+	const cargoTub = tub(1.44, 0.68, 1.2);
+	cargoTub.position.set(0, 0.86, -1.4);
+	group.add(frunkTub, cargoTub);
+
+	// cowl cover: hides the raw wiper-well geometry between frunk tub and
+	// windshield base (a closed plastic panel, like the real HEPA cowl)
+	const cowl = new THREE.Mesh(
+		new THREE.BoxGeometry(1.3, 0.16, 0.34),
+		new THREE.MeshStandardMaterial({ color: 0x1b1c20, roughness: 0.85 })
+	);
+	cowl.position.set(0, 0.82, 1.08);
+	group.add(cowl);
+
+	// the body shell is single-sided: door inner skins, the hood underside and
+	// the gate inner all vanish when opened. Render their back faces too.
+	paintMat.side = THREE.DoubleSide;
+	group.traverse((o) => {
+		if (!o.isMesh) return;
+		const n = o.material?.name || '';
+		if (n === 'Carro_Plastico_Brilho' || n === 'Carro_Cromado' || n === 'Carro_Plastico' || n === 'Carro_Interno') {
+			o.material.side = THREE.DoubleSide;
+		}
+	});
 
 	// ---- cabin touchscreen (the model's interior has no lit display)
 	const screenGroup = new THREE.Group();

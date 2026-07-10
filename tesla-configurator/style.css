@@ -109,6 +109,18 @@ body {
 	padding: 22px clamp(20px, 4vw, 44px);
 	pointer-events: none;
 }
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	color: var(--ink);
+}
+.t-mark {
+	width: 22px;
+	height: 22px;
+	flex: none;
+	filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.4));
+}
 .wordmark {
 	font-family: "Michroma", system-ui, sans-serif;
 	font-size: 15px;
@@ -188,7 +200,8 @@ main :is(.panel, .explore-head, .dock, a, button) { pointer-events: auto; }
 	position: relative;
 }
 :root { --hero-offset: -30vh; }
-.hero-copy { transform: translateY(var(--hero-offset)); }
+/* base offset lives on `top`, not transform — GSAP owns the transform channel */
+.hero-copy { position: relative; top: var(--hero-offset); }
 h1 {
 	font-family: "Michroma", system-ui, sans-serif;
 	font-size: clamp(2.6rem, 9vw, 5.5rem);
@@ -287,14 +300,8 @@ h2 {
 }
 .stats dd small { font-size: 0.65em; color: var(--muted); font-weight: 400; }
 
-/* reveal (progressive enhancement: visible by default) */
-.will-reveal {
-	opacity: 0;
-	transform: translateY(26px);
-}
-.panel, .explore-head, .dock {
-	transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
+/* reveals are GSAP-driven (main.js) and only exist when motion is allowed;
+   without JS or with reduced motion everything stays visible by default */
 
 /* explore */
 .explore {
@@ -414,6 +421,4 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
 	html { scroll-behavior: auto; }
 	.chevron, .loading-fill { animation: none; }
-	.panel, .explore-head, .dock { transition: none; }
-	.will-reveal { opacity: 1; transform: none; }
 }
