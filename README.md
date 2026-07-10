@@ -21,9 +21,41 @@ physically hold a button through the sticking point to break a PR.
 | WORK | `SetLog` (SET 01) | 0.28 | A **live set logger**: steppers, plate math per side, log five sets |
 | WORK | `SetEngine` (SET 02) | 0.48 | Ten weeks of top sets **draw themselves** as you scroll; the engine names the next target (142.5 kg) |
 | WORK | `SetClock` (SET 03) | 0.66 | A **real 90-second rest timer** — rAF + `performance.now()`, drift-free |
+| WORK | `Lab` (THE LAB) | 0.80 | **3D movement library**: man/woman mannequin performs a random exercise on a rotating stage; working muscles ignite; camera dives onto the primary mover |
 | PEAK | `Peak` | 1.00 | Drenched molten. **Hold-to-break**: ~2 s grind with resistance, screen strain, spark burst, PR logged |
 | COOL-DOWN | `Proof` | 0.45 | Testimonials as training-log entries |
 | RECOVERY | `Recovery` | 0.10 | CSS-only box-breathing pacer, honest close, footer |
+
+## The Lab (3D)
+
+The Lab is the seed of the Furnace app: an interactive 3D exercise viewer.
+
+- **Choose your build** — man / woman swap a fully **procedural articulated
+  mannequin** (capsules + spheres, built in code from measured proportions —
+  no downloaded models, no rig licenses). It's deliberately a training-room
+  dummy, not a fake human.
+- **A random movement is drawn** — six procedural exercises (back squat,
+  deadlift, push-up, overhead press, biceps curl, bent-over row), each a
+  `pose(rig, p)` function writing joint angles per rep-cycle, with
+  forward-kinematics helpers that keep the feet planted and the hands under
+  the shoulders. Barbell / dumbbell props attach per movement.
+- **Muscles identify themselves** — ten "muscle pads" bolted onto the body
+  ignite molten *with the rep* (contraction glows hardest), with floating
+  labels projected from 3D each frame.
+- **Rotation, zoom, focus** — the stage auto-orbits (drag to take the
+  wheel), tapping a target chip flies the camera onto that muscle, and one
+  rep after each draw the camera dives onto the primary mover by itself.
+- three.js loads **lazily** in its own chunk when the section approaches;
+  the landing bundle never pays for it. WebGL-less devices get an honest
+  fallback message. Reduced motion holds a readable mid-rep pose.
+
+### Toward the app
+
+This page is already installable as a **PWA** (`manifest.webmanifest`,
+standalone display). The path from here: persist logged sets in
+`localStorage` → IndexedDB, add a service worker for offline, then wrap
+with Capacitor for the stores — the Lab, logger, timer, and engine chart
+are all client-side components that carry over unchanged.
 
 **The heat system** is the site's one signature: every section declares
 `data-heat`; a single controller interpolates between section midpoints on
@@ -56,10 +88,22 @@ src/
                             subscriber stream (HUD). One rAF, one DOM write
     plates.ts               pure plate-math (greedy decomposition, exact)
     plates.check.ts         runnable assertions for plates.ts (npm run check)
+  lab/                      the 3D movement library (lazy chunk)
+    muscles.ts              the ten muscle groups + sexes
+    exercises.ts            procedural movement choreography: pose(rig, p)
+                            joint angles + FK helpers (planted feet, plumb
+                            arms), tempo, props, target muscles
+    mannequin.ts            procedural articulated figure: skeleton, sexed
+                            proportions, muscle pads, barbell/dumbbells
+    stage.ts                three.js scene: lights, orbit + auto-rotate,
+                            rep clock, pad ignition, camera fly-to-muscle,
+                            label projection, visibility-gated rAF
   components/
     EffortHud.tsx/.css      fixed instrument strip; DOM written via refs at
                             scroll frequency — never through React state
   sections/
+    Lab.tsx/.css            the Lab's app surface: build toggle, random
+                            draw, target chips, floating tags, lazy boot
     Hero.tsx/.css           entrance + scroll compression (GSAP matchMedia)
     SetLog.tsx/.css         interactive logger demo (useState — user events)
     SetEngine.tsx/.css      SVG chart, geometry hoisted to module scope,

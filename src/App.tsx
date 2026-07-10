@@ -10,6 +10,7 @@ import { Hero } from './sections/Hero'
 import { SetLog } from './sections/SetLog'
 import { SetEngine } from './sections/SetEngine'
 import { SetClock } from './sections/SetClock'
+import { Lab } from './sections/Lab'
 import { Peak } from './sections/Peak'
 import { Proof } from './sections/Proof'
 import { Recovery } from './sections/Recovery'
@@ -45,6 +46,7 @@ export default function App() {
         <SetLog />
         <SetEngine />
         <SetClock />
+        <Lab />
         <Peak />
         <Proof />
         <Recovery />

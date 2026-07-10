@@ -1,0 +1,223 @@
+/* THE LAB — the app surface. Stage left, instrument panel right;
+   stacks on small screens. This block is deliberately styled like
+   product UI (the future app), not like the poster sections. */
+
+.lab-head {
+  margin-bottom: var(--sp-8);
+}
+
+.lab-head .data-label {
+  margin-bottom: var(--sp-4);
+}
+
+.lab-head h2 {
+  font-size: var(--t-h2);
+  margin-bottom: var(--sp-6);
+}
+
+.lab-app {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: var(--sp-6);
+  align-items: stretch;
+}
+
+/* ---- the stage ---- */
+.lab-stage {
+  position: relative;
+  min-height: 480px;
+  background:
+    radial-gradient(90% 70% at 50% 30%, color-mix(in oklch, var(--c-night), transparent 76%), transparent 75%),
+    var(--c-surface);
+  border: 1px solid var(--c-line);
+  overflow: hidden;
+}
+
+.lab-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: none; /* orbiting must not scroll the page */
+}
+
+.lab-canvas:active {
+  cursor: grabbing;
+}
+
+/* floating muscle tags — positioned per frame from 3D projection */
+.lab-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  translate: -50% -140%;
+  padding: 0.15em 0.55em;
+  background: color-mix(in oklch, var(--c-bg) 78%, transparent);
+  border: 1px solid color-mix(in oklch, var(--c-heat), transparent 45%);
+  color: var(--c-heat);
+  font-size: var(--t-tiny);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-med) linear;
+}
+
+.lab-boot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: var(--sp-6);
+}
+
+.lab-stage[data-status='loading'] .lab-boot {
+  animation: lab-boot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes lab-boot-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ---- the panel ---- */
+.lab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-6);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+}
+
+.lab-field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.lab-field > .data-label,
+.lab-field > legend.data-label {
+  display: block;
+  margin-bottom: var(--sp-3);
+}
+
+/* build toggle: a two-cell segmented control */
+.lab-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--c-line);
+}
+
+.lab-seg-btn {
+  padding: var(--sp-3);
+  font-size: var(--t-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.lab-seg-btn + .lab-seg-btn {
+  border-left: 1px solid var(--c-line);
+}
+
+.lab-seg-btn[aria-checked='true'] {
+  background: var(--c-heat-deep);
+  color: var(--c-ink);
+  font-weight: 640;
+}
+
+.lab-move {
+  font-family: var(--f-display);
+  font-weight: 850;
+  font-stretch: 112%;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--sp-2);
+}
+
+.lab-cue {
+  font-size: var(--t-small);
+  color: var(--c-muted);
+  margin-bottom: var(--sp-4);
+  max-width: 34ch;
+}
+
+.lab-draw {
+  width: 100%;
+  text-align: center;
+}
+
+/* target chips */
+.lab-chips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.lab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-line);
+  font-size: var(--t-small);
+  color: var(--c-ink);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.lab-chip small {
+  color: var(--c-muted);
+}
+
+.lab-chip-coal {
+  width: 0.55em;
+  height: 0.55em;
+  background: var(--c-heat);
+}
+
+.lab-chip:hover {
+  border-color: var(--c-heat);
+}
+
+.lab-chip[aria-pressed='true'] {
+  border-color: var(--c-heat);
+  background: color-mix(in oklch, var(--c-heat-deep), transparent 55%);
+}
+
+.lab-fullbody {
+  font-size: var(--t-small);
+  color: var(--c-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.lab-fullbody:disabled {
+  opacity: 0.35;
+  text-decoration: none;
+  cursor: default;
+}
+
+.lab-fullbody:hover:not(:disabled) {
+  color: var(--c-ink);
+}
+
+@media (max-width: 980px) {
+  .lab-app {
+    grid-template-columns: 1fr;
+  }
+  .lab-stage {
+    min-height: min(72vw, 460px);
+  }
+}
