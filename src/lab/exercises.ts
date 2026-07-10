@@ -93,21 +93,9 @@ export const MELINA_MOVEMENTS: LiveMovement[] = [
     tempo: 1.8,
     muscles: ['hams', 'glutes', 'core'],
   },
-  {
-    id: 'sumo-pull',
-    name: 'Sumo high pull',
-    cue: 'Wide stance, rip it from the floor to your collarbone.',
-    tempo: 2.2,
-    muscles: ['delts', 'hams', 'core'],
-  },
-  {
-    id: 'situp',
-    name: 'Sit-up',
-    cue: 'Curl up rib by rib. The floor is the only rest you get.',
-    tempo: 2.4,
-    viewY: 0.4,
-    muscles: ['core', 'quads'],
-  },
+  // Sumo high pull (clip 331) and sit-up (clip 330) were cut when the
+  // wardrobe was regenerated — each movement is one 8-credit rigging
+  // job away from returning; see README "The Lab".
 ]
 
 export const EXERCISES: Exercise[] = [
