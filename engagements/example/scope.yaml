@@ -1,0 +1,59 @@
+# =============================================================================
+# ENGAGEMENT SCOPE + AUTHORIZATION
+# =============================================================================
+# This file is the single source of truth for what an engagement may touch.
+# Nothing is tested until it matches an in-scope target here AND the engagement
+# is marked authorized. Copy this file per engagement (e.g. engagements/acme/).
+#
+# ONLY test systems you own or have explicit, written permission to test.
+# Filling in `authorized: true` is your attestation that you have that right.
+# =============================================================================
+
+engagement: example-homelab
+operator: your-name
+
+authorization:
+  # Set to true ONLY if you own these targets or hold written authorization.
+  authorized: false
+  authorized_by: ""          # who signed off (you, or the client contact)
+  attestation: ""            # e.g. "I own this homelab" / "SOW #1234, signed 2026-07-01"
+  expires: 2026-12-31        # engagement authorization end date (YYYY-MM-DD)
+
+# What may be tested. Each entry is auto-classified (host / domain / cidr / url /
+# repo); you can also set `type:` explicitly. A `domain` entry (*.example.com)
+# matches all subdomains.
+targets:
+  - target: "https://app.example.com"      # a specific web app
+  - target: "*.example.com"                 # the domain and its subdomains
+  - target: "10.0.0.0/24"                   # a homelab subnet
+  - target: "/home/you/code/my-portfolio"  # a local repo checkout (secret/dep/code scan)
+  # - target: "git@github.com:you/your-repo.git"
+
+# Explicit carve-outs. Anything matching these is refused even if it also
+# matches a target above (e.g. a shared/managed host you must not touch).
+out_of_scope:
+  - target: "admin.example.com"
+  - target: "10.0.0.1"                      # the gateway
+
+rules:
+  # Master switch for the red team's active exploitation tools (sqlmap_test,
+  # web_exploit_verify, known_cve_verify). When false, the red team still finds
+  # and reports vulnerabilities but never attempts to exploit them.
+  active_exploitation: true
+
+  # Politeness / safety throttle: max target-facing actions per minute.
+  max_rate: 60
+
+  # Gate for credential testing (brute-force / default-creds / spraying). The
+  # Guard denies any credential-testing action unless this is true. No credential
+  # tool ships by default; this gates one you add. Keep false unless needed.
+  allow_credential_testing: false
+
+  # Extra keywords to forbid for this engagement (in addition to the built-in
+  # always-prohibited set: DoS, destructive, mass-scan, ransomware, etc.).
+  prohibited: []
+
+contact: "you@example.com"   # who to reach if something looks wrong mid-test
+notes: |
+  Homelab stress test. Business hours only. If a service becomes unstable, stop
+  and notify the contact. Do not touch the gateway (10.0.0.1) or admin host.
