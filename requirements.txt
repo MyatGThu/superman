@@ -1,0 +1,9 @@
+# Core runtime dependencies for the Superman red/blue team framework.
+# The security *tools* (nmap, nuclei, sqlmap, gitleaks, trivy, semgrep, ...) are
+# installed separately by setup/install.sh — they are not Python packages.
+
+anthropic>=0.40.0        # drives the adaptive agent loop (the Claude Agent SDK also works)
+PyYAML>=6.0              # scope file parsing
+
+# Optional, for development/testing:
+#   pytest>=8.0
