@@ -21,7 +21,7 @@ Any HTTP(S) service found → switch to the **web-app** playbook for that URL (h
 
 ## 4. Verification (only if `active_exploitation: true`)
 - `known_cve_verify` against a service that fingerprinted to a vulnerable version.
-- Default/weak credentials only if `allow_credential_testing: true`, and always throttled (no lockout-inducing spraying).
+- **Credentials:** the default toolset does **not** perform credential attacks. Credential testing (brute-force / default-creds / spraying) is gated by `allow_credential_testing` — the Guard denies any credential-testing action unless that flag is set — so it is only available if you add a throttled credential adapter (see `docs/ARCHITECTURE.md`). Even then, never run lockout-inducing spraying.
 - Prove the exposure minimally; do not alter data or configuration.
 
 ## 5. Record & prioritize

@@ -36,6 +36,7 @@ def _url(target: str) -> str:
 class SecurityHeaders(ToolAdapter):
     name = "http_security_headers"
     category = "web"
+    target_param = "url"
     description = ("Fetch a URL and analyze HTTP response security headers (HSTS, CSP, X-Frame-Options, "
                    "cookie flags, information disclosure). Non-destructive.")
     parameters = {"type": "object", "properties": {
@@ -78,6 +79,7 @@ class SecurityHeaders(ToolAdapter):
 class TlsInspect(ToolAdapter):
     name = "tls_inspect"
     category = "tls"
+    target_param = "host"
     description = ("Inspect a host's TLS certificate and negotiated protocol: expiry, hostname match, "
                    "self-signed, and weak protocol versions. Non-destructive.")
     parameters = {"type": "object", "properties": {
@@ -141,6 +143,7 @@ class TlsInspect(ToolAdapter):
 class HttpFingerprint(ToolAdapter):
     name = "http_fingerprint"
     category = "web"
+    target_param = "host"
     description = ("Identify server/framework, redirects, and whether the site enforces HTTPS. "
                    "Fetches the root over http and https. Non-destructive.")
     parameters = {"type": "object", "properties": {"host": {"type": "string"}}, "required": ["host"]}

@@ -44,7 +44,9 @@ rules:
   # Politeness / safety throttle: max target-facing actions per minute.
   max_rate: 60
 
-  # Allow throttled default-credential / password checks (still no lockout-inducing spraying).
+  # Gate for credential testing (brute-force / default-creds / spraying). The
+  # Guard denies any credential-testing action unless this is true. No credential
+  # tool ships by default; this gates one you add. Keep false unless needed.
   allow_credential_testing: false
 
   # Extra keywords to forbid for this engagement (in addition to the built-in

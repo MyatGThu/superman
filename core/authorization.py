@@ -15,6 +15,7 @@ written to the audit log. There is deliberately no "force" or "bypass" flag.
 
 from __future__ import annotations
 
+import re
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -38,6 +39,47 @@ PROHIBITED_KEYWORDS = (
     "botnet", "worm", "self-propagat", "supply-chain implant", "backdoor upstream",
 )
 
+# Distinctive credential-attack markers. These gate behind rules.allow_credential_testing
+# (mirroring the active_exploitation gate). Chosen to be specific enough not to
+# false-positive on ordinary parameters (e.g. a POST body containing "password").
+CREDENTIAL_KEYWORDS = (
+    "bruteforce", "brute-force", "brute force", "password-spray", "password spray",
+    "credential-spray", "credential stuffing", "credential-stuffing", "password-guessing",
+    "default-credential", "default credential", "credential-testing",
+)
+
+# Very short prohibited tokens too ambiguous to match inside free-form parameter
+# values (e.g. a host literally named "dos-api"). Still matched against action names.
+_AMBIGUOUS_IN_PARAMS = {"dos"}
+
+
+def _param_text(params: dict | None) -> str:
+    """Flatten a params dict (keys and values, recursively) to a lowercase string."""
+    if not params:
+        return ""
+    parts: list[str] = []
+
+    def walk(v) -> None:
+        if isinstance(v, dict):
+            for k, val in v.items():
+                parts.append(str(k))
+                walk(val)
+        elif isinstance(v, (list, tuple)):
+            for x in v:
+                walk(x)
+        else:
+            parts.append(str(v))
+
+    walk(params)
+    return " ".join(parts).lower()
+
+
+def _word_in(kw: str, text: str) -> bool:
+    """Whole-token match of kw in text (alphanumeric boundaries), for param values."""
+    if not text:
+        return False
+    return re.search(r"(?<![a-z0-9])" + re.escape(kw) + r"(?![a-z0-9])", text) is not None
+
 
 @dataclass
 class Decision:
@@ -56,9 +98,14 @@ class Guard:
         self._recent: deque[float] = deque()
 
     # ---- public API ----------------------------------------------------
-    def check(self, action: str, target: str = "", *, active: bool = False, detail: dict | None = None) -> Decision:
-        """Authorize an action. Returns a Decision on success; raises on denial."""
-        decision = self._evaluate(action, target, active=active)
+    def check(self, action: str, target: str = "", *, active: bool = False,
+              detail: dict | None = None, params: dict | None = None) -> Decision:
+        """Authorize an action. Returns a Decision on success; raises on denial.
+
+        `params` (the tool's arguments) are scanned for prohibited / credential
+        intent, so the safety net isn't limited to the benign tool name.
+        """
+        decision = self._evaluate(action, target, active=active, params=params)
         self.audit.record(
             AuditEvent(
                 kind="authorization",
@@ -75,30 +122,45 @@ class Guard:
         self._register_rate()
         return decision
 
-    def is_allowed(self, action: str, target: str = "", *, active: bool = False) -> bool:
+    def is_allowed(self, action: str, target: str = "", *, active: bool = False, params: dict | None = None) -> bool:
         try:
-            return self._evaluate(action, target, active=active).allowed
+            return self._evaluate(action, target, active=active, params=params).allowed
         except Exception:
             return False
 
     # ---- internals -----------------------------------------------------
-    def _evaluate(self, action: str, target: str, *, active: bool) -> Decision:
+    def _evaluate(self, action: str, target: str, *, active: bool, params: dict | None = None) -> Decision:
         norm = (action or "").strip().lower()
+        param_text = _param_text(params)
 
         # 1. Engagement readiness.
         problems = self.scope.authorization_problems()
         if problems:
             return Decision(False, "engagement not authorized: " + "; ".join(problems), action, target)
 
-        # 2. Always-prohibited actions (destructive / mass-impact).
+        # 2. Always-prohibited actions (destructive / mass-impact) — matched against
+        #    the action name AND the tool's parameters (whole-token for param values).
         for kw in PROHIBITED_KEYWORDS + ALWAYS_PROHIBITED:
-            if kw in norm:
+            if kw in norm or (kw not in _AMBIGUOUS_IN_PARAMS and _word_in(kw, param_text)):
                 return Decision(False, f"action '{action}' is always prohibited (matched '{kw}')", action, target)
         for kw in self.scope.rules.prohibited:
-            if kw.strip().lower() in norm:
+            k = kw.strip().lower()
+            if k and (k in norm or k in param_text):
                 return Decision(False, f"action '{action}' is prohibited by this engagement's rules ('{kw}')", action, target)
 
-        # 3. Active exploitation must be explicitly enabled by the scope.
+        # 3. Credential testing is gated behind rules.allow_credential_testing.
+        if not self.scope.rules.allow_credential_testing:
+            for kw in CREDENTIAL_KEYWORDS:
+                if kw in norm or kw in param_text:
+                    return Decision(
+                        False,
+                        f"action '{action}' involves credential testing, which this engagement has not enabled "
+                        "(set rules.allow_credential_testing: true in the scope to allow it)",
+                        action,
+                        target,
+                    )
+
+        # 4. Active exploitation must be explicitly enabled by the scope.
         if active and not self.scope.rules.active_exploitation:
             return Decision(
                 False,
@@ -108,13 +170,13 @@ class Guard:
                 target,
             )
 
-        # 4. Scope membership (only when a target is named).
+        # 5. Scope membership (only when a target is named).
         if target:
             in_scope, reason = self.scope.is_in_scope(target)
             if not in_scope:
                 return Decision(False, f"out of scope: {reason}", action, target)
 
-        # 5. Rate limit.
+        # 6. Rate limit.
         if self._rate_exceeded():
             return Decision(
                 False,

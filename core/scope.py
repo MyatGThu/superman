@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ipaddress
 import re
+import socket
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
@@ -20,6 +21,29 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
+
+
+def _resolve(host: str) -> list:
+    """Resolve a hostname to its IP addresses. Returns [] on any failure so
+    callers fail closed rather than silently skipping an exclusion."""
+    if not host:
+        return []
+    try:
+        ipaddress.ip_address(host)
+        return [ipaddress.ip_address(host)]
+    except ValueError:
+        pass
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except (socket.gaierror, UnicodeError, OSError):
+        return []
+    out = []
+    for info in infos:
+        try:
+            out.append(ipaddress.ip_address(info[4][0]))
+        except (ValueError, IndexError):
+            pass
+    return out
 
 
 class TargetType(str, Enum):
@@ -86,9 +110,17 @@ class Target:
         if self.type == TargetType.CIDR:
             try:
                 net = ipaddress.ip_network(self.raw, strict=False)
-                return ipaddress.ip_address(_host_of(cand)) in net
             except ValueError:
                 return False
+            host = _host_of(cand)
+            try:
+                return ipaddress.ip_address(host) in net
+            except ValueError:
+                pass
+            # A hostname: resolve it and match if ANY resolved address is in the
+            # range. This ensures a name that resolves into an excluded CIDR is
+            # actually excluded (and one resolving into an in-scope CIDR matches).
+            return any(ip in net for ip in _resolve(host))
         # HOST
         return _host_of(cand) == _host_of(self.raw)
 
@@ -206,6 +238,12 @@ class Scope:
 
     def is_ready(self) -> bool:
         return not self.authorization_problems()
+
+    def is_excluded(self, candidate: str) -> bool:
+        """True if the candidate matches any out-of-scope entry. Used for a
+        connect-time recheck of the *resolved IP* to catch a name that is
+        in-scope but points at an excluded address (DNS misdirection/rebinding)."""
+        return any(ex.matches(candidate) for ex in self.out_of_scope)
 
     def is_in_scope(self, candidate: str) -> tuple[bool, str]:
         """Return (allowed, reason). Fails closed."""

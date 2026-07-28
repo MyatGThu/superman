@@ -36,6 +36,7 @@ def _host(raw: str) -> str:
 class TcpPortScan(ToolAdapter):
     name = "tcp_port_scan"
     category = "network"
+    target_param = "host"
     description = ("TCP connect scan of a single host against common ports (or a supplied list). "
                    "Reports which ports are open. Capped at 200 ports per call.")
     parameters = {"type": "object", "properties": {
@@ -54,6 +55,11 @@ class TcpPortScan(ToolAdapter):
             ip = socket.gethostbyname(host)
         except socket.gaierror as e:
             return ToolResult(self.name, ok=False, target=host, summary=f"DNS resolution failed: {e}")
+        # Recheck the RESOLVED ip against exclusions: an in-scope name must not
+        # resolve to an out-of-scope address (DNS misdirection / rebinding).
+        if ctx.scope.is_excluded(ip):
+            return ToolResult(self.name, ok=False, target=host,
+                              summary=f"refused: {host} resolves to {ip}, which is out of scope.")
 
         open_ports: list[int] = []
 
@@ -84,6 +90,7 @@ class TcpPortScan(ToolAdapter):
 class NmapScan(ToolAdapter):
     name = "nmap_scan"
     category = "network"
+    target_param = "host"
     requires = ("nmap",)
     description = ("Service/version detection with nmap (top ports). Richer than tcp_port_scan when nmap "
                    "is installed. Uses -sV -Pn against a single host.")
@@ -96,6 +103,12 @@ class NmapScan(ToolAdapter):
         if not self.available():
             return self._unavailable(params.get("host", ""))
         host = _host(params["host"])
+        try:  # recheck resolved ip against exclusions before handing host to nmap
+            if ctx.scope.is_excluded(socket.gethostbyname(host)):
+                return ToolResult(self.name, ok=False, target=host,
+                                  summary=f"refused: {host} resolves out of scope.")
+        except socket.gaierror as e:
+            return ToolResult(self.name, ok=False, target=host, summary=f"DNS resolution failed: {e}")
         top = max(1, min(int(params.get("top_ports", 200)), 1000))
         res = safe_run(["nmap", "-Pn", "-sV", "-T3", "--top-ports", str(top), host],
                        timeout=ctx.settings.tool_timeout)

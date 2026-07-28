@@ -47,6 +47,7 @@ def _repo_path(raw: str) -> Path | None:
 class SecretRegexScan(ToolAdapter):
     name = "secret_scan"
     category = "secrets"
+    target_param = "repo"
     description = ("Scan a local repository checkout for hardcoded secrets (API keys, private keys, tokens) "
                    "using regex signatures. Pure-Python; no external tools needed.")
     parameters = {"type": "object", "properties": {
@@ -91,6 +92,7 @@ class SecretRegexScan(ToolAdapter):
 class GitleaksScan(ToolAdapter):
     name = "gitleaks_scan"
     category = "secrets"
+    target_param = "repo"
     requires = ("gitleaks",)
     description = "Run gitleaks over a repository (including git history) to detect leaked secrets."
     parameters = {"type": "object", "properties": {"repo": {"type": "string"}}, "required": ["repo"]}
@@ -124,6 +126,7 @@ class GitleaksScan(ToolAdapter):
 class DependencyAudit(ToolAdapter):
     name = "dependency_audit"
     category = "dependency"
+    target_param = "repo"
     description = ("Identify dependency manifests in a repo and, if a vulnerability scanner (trivy/pip-audit/npm) "
                    "is installed, report known-vulnerable dependencies. Otherwise lists manifests to audit.")
     parameters = {"type": "object", "properties": {"repo": {"type": "string"}}, "required": ["repo"]}
@@ -155,6 +158,7 @@ class DependencyAudit(ToolAdapter):
 class SemgrepScan(ToolAdapter):
     name = "semgrep_scan"
     category = "code"
+    target_param = "repo"
     requires = ("semgrep",)
     description = "Run semgrep static analysis (default 'auto' ruleset) over a repository for code-level vulns."
     parameters = {"type": "object", "properties": {"repo": {"type": "string"}}, "required": ["repo"]}

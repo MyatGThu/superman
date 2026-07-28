@@ -14,6 +14,17 @@ from ..tooling import ToolAdapter, ToolContext, ToolResult
 USER_AGENT = "superman-security/0.1 (authorized-testing)"
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to auto-follow redirects. urllib would otherwise transparently
+    chase a 3xx to ANY host, contacting a target the Guard never authorized.
+    Returning None surfaces the 3xx as an HTTPError, which http_fetch turns back
+    into a normal response (status + Location header) for the caller to inspect —
+    but no new host is contacted."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 @dataclass
 class HttpResponse:
     ok: bool
@@ -42,8 +53,9 @@ def http_fetch(
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     req = urllib.request.Request(url, method=method, headers={"User-Agent": USER_AGENT, **(headers or {})})
+    opener = urllib.request.build_opener(_NoRedirect, urllib.request.HTTPSHandler(context=ctx))
     try:
-        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             body = resp.read(max_body).decode("utf-8", "replace")
             hdrs = {k.lower(): v for k, v in resp.headers.items()}
             return HttpResponse(True, resp.status, hdrs, body, resp.geturl())

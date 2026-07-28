@@ -114,6 +114,11 @@ class ToolAdapter:
     category: str = "misc"
     requires: tuple[str, ...] = ()      # external binaries needed; empty => pure python
     active: bool = False                # True => active exploitation (scope-gated)
+    # The single parameter key naming the target this adapter actually contacts.
+    # The engine authorizes exactly this value (not a precedence guess), so the
+    # Guard validates the same string run() acts on. None => this tool contacts
+    # no target (meta tools; tools that re-authorize internally).
+    target_param: str | None = None
     parameters: dict = {"type": "object", "properties": {}, "required": []}
 
     def available(self) -> bool:

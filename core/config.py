@@ -38,6 +38,14 @@ class Settings:
     dry_run: bool = field(default_factory=lambda: os.environ.get("SUPERMAN_DRY_RUN", "").lower() in ("1", "true", "yes"))
     verbose: bool = field(default_factory=lambda: os.environ.get("SUPERMAN_VERBOSE", "").lower() in ("1", "true", "yes"))
 
+    def __post_init__(self) -> None:
+        # Clamp to sane minimums so misconfiguration degrades gracefully rather
+        # than producing empty ranges / nonsensical loops.
+        self.max_iterations = max(1, int(self.max_iterations))
+        self.max_tokens = max(256, int(self.max_tokens))
+        self.tool_timeout = max(1, int(self.tool_timeout))
+        self.max_actions_per_minute = max(1, int(self.max_actions_per_minute))
+
     def workspace_for(self, engagement: str) -> Path:
         safe = "".join(c if c.isalnum() or c in "-_." else "_" for c in engagement) or "engagement"
         path = self.workspace_root / safe

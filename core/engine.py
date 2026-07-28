@@ -62,8 +62,8 @@ class Agent:
         except ImportError as exc:  # pragma: no cover - env dependent
             raise RuntimeError(
                 "The 'anthropic' package is not installed. Run `pip install -r requirements.txt` "
-                "or `python setup/bootstrap.py`. (You can still use --dry-run, --doctor, "
-                "--list-tools and --check-scope without it.)"
+                "or `python setup/bootstrap.py`. (You can still use the `doctor`, `list-tools` and "
+                "`check-scope` subcommands, or `run --dry-run`, without it.)"
             ) from exc
         if not self.settings.has_api_key():
             raise RuntimeError(
@@ -78,6 +78,7 @@ class Agent:
         tool_calls = denied = 0
         stopped = "completed"
         final_text = ""
+        iteration = 0  # stays bound even if max_iterations <= 0 (empty range)
 
         for iteration in range(1, self.settings.max_iterations + 1):
             response = client.messages.create(
@@ -133,12 +134,25 @@ class Agent:
         if adapter is None:
             return False, f"error: unknown tool '{name}'"
 
-        target = params.get("target") or params.get("url") or params.get("repo") or params.get("host") or ""
+        # Authorize EXACTLY the target the adapter will contact (its declared
+        # target_param), not a precedence guess — this closes the confused-deputy
+        # where the Guard validates one key while run() uses another. As defense
+        # in depth, also authorize any *other* target-bearing key present, so a
+        # decoy in-scope value can't smuggle an out-of-scope one past the Guard.
+        tp = getattr(adapter, "target_param", None)
+        primary = str(params.get(tp, "")) if tp else ""
         try:
-            self.ctx.guard.check(name, target, active=adapter.active, detail={"params": _safe(params)})
+            self.ctx.guard.check(name, primary, active=adapter.active,
+                                 detail={"params": _safe(params)}, params=params)
+            if tp:  # only contacting tools scope-check extra target keys
+                for key in ("target", "url", "host", "repo"):
+                    if key != tp and params.get(key):
+                        self.ctx.guard.check(name, str(params[key]), active=adapter.active,
+                                             detail={"decoy_key": key}, params=params)
         except AuthorizationError as exc:
             # Not a crash: tell the model why, so it can adapt within bounds.
             return False, f"DENIED by authorization guard: {exc}"
+        target = primary
 
         if self.settings.verbose:
             print(f"[{self.role}] -> {name}({_safe(params)})")

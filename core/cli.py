@@ -92,8 +92,8 @@ def _settings_from_args(args) -> Settings:
     s = Settings()
     if getattr(args, "model", None):
         s.model = args.model
-    if getattr(args, "max_iterations", None):
-        s.max_iterations = args.max_iterations
+    if getattr(args, "max_iterations", None) is not None:
+        s.max_iterations = max(1, args.max_iterations)
     if getattr(args, "dry_run", False):
         s.dry_run = True
     if getattr(args, "verbose", False):

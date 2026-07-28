@@ -40,6 +40,7 @@ def _base(url: str) -> str:
 class ExposedPathsProbe(ToolAdapter):
     name = "exposed_paths_probe"
     category = "web"
+    target_param = "url"
     description = ("GET a curated list of commonly-exposed sensitive paths (.git, .env, backups, status/actuator "
                    "endpoints) and report which are reachable. Read-only and non-destructive.")
     parameters = {"type": "object", "properties": {
@@ -72,6 +73,7 @@ class ExposedPathsProbe(ToolAdapter):
 class NucleiScan(ToolAdapter):
     name = "nuclei_scan"
     category = "web"
+    target_param = "url"
     requires = ("nuclei",)
     description = ("Run nuclei detection templates against a URL (CVEs, misconfigurations, exposures). "
                    "Detection only; rate-limited. Requires nuclei installed.")
@@ -105,6 +107,7 @@ class NucleiScan(ToolAdapter):
 class NikitoScan(ToolAdapter):
     name = "nikto_scan"
     category = "web"
+    target_param = "url"
     requires = ("nikto",)
     description = "Run a nikto web server scan (misconfigurations, dangerous files). Requires nikto installed."
     parameters = {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}

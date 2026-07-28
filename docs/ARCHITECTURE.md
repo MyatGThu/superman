@@ -40,6 +40,9 @@ class MyScan(ToolAdapter):
     description = "One-line, model-facing description of what it does."
     requires = ("mytool",)           # external binaries; empty => pure-Python
     active = False                   # True => active exploitation (scope-gated)
+    target_param = "url"             # the param key naming the target you contact;
+                                     # the engine authorizes exactly this value.
+                                     # None => contacts no target (meta/remediation).
     parameters = {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}
 
     def run(self, params, ctx: ToolContext) -> ToolResult:
@@ -52,7 +55,10 @@ class MyScan(ToolAdapter):
 
 2. Register it in `core/tools/__init__.py` (add to `RED_*` / `BLUE_TOOLS`).
 3. Prefer a **pure-Python fallback** so the tool is useful without installs. Set
-   `active = True` for anything that exploits/changes target state.
+   `active = True` for anything that exploits/changes target state, and set
+   `target_param` to the key holding the host/url/repo you contact so the Guard
+   authorizes exactly that. If your tool discovers *new* targets mid-run,
+   re-authorize each via `ctx.guard.check(...)` before touching it.
 4. Add a test under `tests/` (see `tests/test_tools_integration.py` for the
    local-server pattern).
 

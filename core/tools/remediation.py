@@ -106,23 +106,22 @@ class VerifyFix(ToolAdapter):
         f = ctx.findings.get(params["finding_id"])
         if not f:
             return ToolResult(self.name, ok=False, summary=f"no finding with id {params['finding_id']}")
-        target = f.target.split(":")[0] if f.category == "network" else f.target
-        # Re-authorize before re-touching the target.
+
+        # Build the exact re-test call for this finding's category (see below),
+        # then re-authorize the host we will actually contact before touching it.
+        adapter, params_in, host = self._retest_for(f)
         from ..authorization import AuthorizationError
         try:
-            ctx.guard.check("verify_fix", target, active=False, detail={"finding": f.id})
+            ctx.guard.check("verify_fix", host, active=False, detail={"finding": f.id})
         except AuthorizationError as e:
-            return ToolResult(self.name, ok=False, target=target, summary=f"cannot verify (out of scope now): {e}")
+            return ToolResult(self.name, ok=False, target=host, summary=f"cannot verify (out of scope now): {e}")
 
-        # Choose a re-test tool. Exposed-path findings use the path probe on the base.
-        if "Exposed path" in f.title:
-            adapter, key = ExposedPathsProbe(), "url"
-        else:
-            adapter = self._by_category.get(f.category, SecurityHeaders)()
-            key = "host" if f.category in ("tls", "network") else "url"
-        result = adapter.run({key: target}, ctx)
-        still_present = any(nf.title == f.title for nf in result.findings)
-        if still_present:
+        result = adapter.run(params_in, ctx)
+        # A failed/errored re-test must NOT be read as "fixed" — keep it open.
+        if not result.ok and not result.findings:
+            f.notes.append(f"verify_fix: re-test inconclusive ({result.summary})")
+            summary = f"{f.id} NOT VERIFIED — re-test inconclusive"
+        elif any(nf.title == f.title for nf in result.findings):
             f.notes.append("verify_fix: issue still reproduces")
             summary = f"{f.id} STILL PRESENT after re-test"
         else:
@@ -131,7 +130,28 @@ class VerifyFix(ToolAdapter):
             summary = f"{f.id} VERIFIED fixed (no longer reproduces)"
         if ctx.findings.path:
             ctx.findings.save()
-        return ToolResult(self.name, target=target, summary=summary, output=result.summary)
+        return ToolResult(self.name, target=host, summary=summary, output=result.summary)
+
+    def _retest_for(self, f):
+        """Return (adapter, params, host) that re-tests exactly this finding."""
+        if "Exposed path" in f.title:
+            # f.target is base+path (e.g. https://h/.env); re-check the real path
+            # on the correct base rather than appending the probe list to it again.
+            path = f.title.split("Exposed path:", 1)[1].strip() if ":" in f.title else ""
+            base = f.target[: -len(path)] if path and f.target.endswith(path) else f.target
+            host = base.split("//")[-1].split("/")[0]
+            return ExposedPathsProbe(), {"url": base, "extra_paths": [path] if path else []}, host
+        if f.category == "tls":
+            host, _, port = f.target.partition(":")
+            p = {"host": host}
+            if port.isdigit():
+                p["port"] = int(port)
+            return TlsInspect(), p, host
+        if f.category == "network":
+            host = f.target.split(":")[0]
+            return TcpPortScan(), {"host": host}, host
+        adapter = self._by_category.get(f.category, SecurityHeaders)()
+        return adapter, {"url": f.target}, f.target
 
 
 class WriteReport(ToolAdapter):
