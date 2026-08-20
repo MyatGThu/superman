@@ -1,11 +1,12 @@
 # superman
 
-A curated, auto-refreshed catalog of popular **website libraries** — their canonical
-GitHub repositories and related Claude Agent Skills.
+Curated, URL-verified catalogs of useful software libraries, tools, and Claude skills.
 
-➡️ **See [LIBRARIES.md](./LIBRARIES.md)** for the full catalog (3D, animation, UI
-frameworks, styling, data viz, maps, media, utilities).
+## Catalogs
 
-- Every GitHub URL is verified to resolve.
-- 🔁 Refreshed automatically every 24 hours by a scheduled job that re-scans for
-  popular libraries and updates `LIBRARIES.md`.
+- **[LIBRARIES.md](./LIBRARIES.md)** — popular **website libraries** (3D, animation, UI
+  frameworks, styling, data viz, maps, media, utilities). 🔁 Auto-refreshed monthly.
+- **[HOUSING-FINANCE-RESEARCH.md](./HOUSING-FINANCE-RESEARCH.md)** — libraries, tools,
+  data sources, and skills for **researching apartment hunting, loans, and financing**.
+
+Every GitHub URL in these catalogs is verified to resolve.
