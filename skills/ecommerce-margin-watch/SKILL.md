@@ -1,6 +1,6 @@
 ---
 name: ecommerce-margin-watch
-description: Continuously reconcile true unit economics for a POD store — live supplier base costs + Shopify pricing + ad spend + tool costs + returns provisioning — into per-product margins, blended true CAC, and go/no-go dashboard numbers. Use for the weekly numbers ritual, before/after any price or supplier change, at phase gates, and whenever ads are running. Fills a confirmed gap: existing skills analyze supplied data one-off; nothing reconciles across systems continuously.
+description: "Continuously reconcile true unit economics for a POD store — live supplier base costs + Shopify pricing + ad spend + tool costs + returns provisioning — into per-product margins, blended true CAC, and go/no-go dashboard numbers. Use for the weekly numbers ritual, before/after any price or supplier change, at phase gates, and whenever ads are running. Fills a confirmed gap: existing skills analyze supplied data one-off; nothing reconciles across systems continuously."
 ---
 
 # Ecommerce Margin Watch
@@ -17,7 +17,8 @@ them against the plan's pre-committed gates.
 2. **Store** — Shopify: prices, orders, AOV, conversion rate, discounts given.
 3. **Ad spend** — Meta/TikTok via official APIs only (spend, reported CPA — recorded but
    never trusted as CAC).
-4. **Fixed stack** — plan + app subscriptions (from the runbook's tool ledger).
+4. **Fixed stack** — plan + app subscriptions, from the tool ledger in
+   `lastone/docs/00-operating-runbook.md`.
 5. **Returns/chargebacks** — actuals; floor the provision at 5% of revenue even when
    actuals are lower (apparel runs 20–40% return rates; POD 20–30%).
 
@@ -33,7 +34,7 @@ net margin            = (revenue − COGS − ads − tools − returns provisio
 runway burn           = ad-testing fund remaining ÷ current monthly net burn
 ```
 
-## Report (weekly ritual — Karpathy rule 8: visualize everything)
+## Report (the numbers half of the weekly ritual in `lastone/docs/00-operating-runbook.md`)
 
 One page, same order every week:
 - Store up / orders flowing to supplier / flows sending (the silent-failure check)
@@ -43,8 +44,9 @@ One page, same order every week:
 - Per-product margin table, flagged rows first; any supplier repricing since last run
 - Returns/chargeback rate (chargebacks > 0.5% = red alert — processor-hold territory)
 - Ad-fund remaining + months of runway
-- Phase-gate tracker: distance to the month-6 (breakeven ±$500) and month-12
-  ($1,500+/mo net, rising) go/no-go lines
+- Phase-gate tracker, both conditions of each gate: month-6 (net within $500 of breakeven
+  **and** a creative holding CPA ≤ $32 for 14 consecutive running days) and month-12
+  (net ≥ $1,500/mo **and** the months 10–12 average net above the months 7–9 average)
 
 ## Alert rules (surface immediately, don't wait for the weekly)
 

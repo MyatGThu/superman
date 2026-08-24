@@ -15,6 +15,7 @@ for this business live in [`skills/`](./skills/).
 - [Email / Klaviyo](#email--klaviyo)
 - [Print-on-demand tooling](#print-on-demand-tooling)
 - [Premium storefront frontend libraries](#premium-storefront-frontend-libraries)
+- [WooCommerce (tracked, not used)](#woocommerce-tracked-not-used)
 - [Gap analysis → custom skills built here](#gap-analysis--custom-skills-built-here)
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: pod-product-factory
-description: Run the print-on-demand product pipeline end to end — design concept → IP/policy screening → supplier product selection → margin math → mockups → listing copy → publish to Shopify (and Etsy) with supplier sync. Use when creating new POD products, batch-launching a design drop, or auditing an existing catalog's margins. Fills the confirmed ecosystem gap: pieces exist in isolation (Printful MCP, copy skills, image gen) but nothing chains them with margin math and trademark screening.
+description: "Run the print-on-demand product pipeline end to end — design concept → IP/policy screening → supplier product selection → margin math → mockups → listing copy → publish to Shopify (and Etsy) with supplier sync. Use when creating new POD products, batch-launching a design drop, or auditing an existing catalog's margins. Fills the confirmed ecosystem gap: pieces exist in isolation (Printful MCP, copy skills, image gen) but nothing chains them with margin math and trademark screening."
 ---
 
 # POD Product Factory
@@ -43,7 +43,8 @@ breakeven_CAC = AOV × gross_margin_pct
 
 - Reject if gross margin < 35% or gross < $12/unit.
 - Target AOV $60–80 via bundles (two-piece sets, matched sets) → breakeven CAC $24–32.
-  A standalone item priced so breakeven CAC < $20 needs a bundle path defined.
+  Any standalone item whose breakeven CAC lands under $20 — i.e. retail below ~$50 at 40%
+  margin — cannot be advertised profitably alone and needs a defined bundle path first.
 - Provision 5–10% of revenue for returns/chargebacks in all projections.
 
 ## Gate 5 — Assets & listing

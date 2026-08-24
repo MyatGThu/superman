@@ -7,12 +7,13 @@ description: Orchestrate a complete Shopify store launch for a solo-founder POD 
 
 Sequences "brand idea → live premium store" end to end. Non-developer operable: uses the
 Shopify MCP tools (or Admin GraphQL API) for every mutation; never asks the owner to click
-through the admin except for owner-only items (payments, domain — see the launch
-checklist in the build repo).
+through the admin except for owner-only items (payments, domain — see
+`lastone/docs/06-launch-checklist.md`).
 
 ## Prerequisites
 
-- Shopify store exists with API/MCP access (owner completed launch-checklist Phase 1 items).
+- Shopify store exists with API/MCP access (owner completed the **Phase 0** items in
+  `lastone/docs/06-launch-checklist.md`).
 - Brand package: name, one-line positioning, identity niche, type pair, palette
   (generate with `cofoundy/brand-skills` or equivalent if missing).
 - Theme decision made (default: Symmetry $340 for fashion-editorial; Prestige ~$400 for
@@ -57,7 +58,8 @@ checklist in the build repo).
 
 ## Anti-patterns
 
-- Building Phase-3 features (subscriptions, upsell apps, loyalty) at launch.
+- Building later-phase features at launch (upsell/loyalty apps; the coffee subscription
+  layer is Phase 4 — see the roadmap in `lastone/BUSINESS_PLAN.md`).
 - Custom checkout work (gated to Shopify Plus; not for this build).
 - Headless/Hydrogen (2–3× cost multiplier; premium theme + custom sections instead).
 - More than 3 options per product (platform ceiling is 3 options / 2,048 variants).

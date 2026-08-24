@@ -1,6 +1,6 @@
 ---
 name: ecommerce-email-flows
-description: Author and deploy the complete Klaviyo lifecycle flow set for a POD ecommerce brand — welcome, abandoned cart, post-purchase (production-time-aware), winback, browse abandonment — with POD-specific logic like misprint/replacement handling and honest shipping expectations. Use when setting up email/SMS automation, auditing flow performance against benchmarks, or adding a new flow. Fills the confirmed gap: Klaviyo's MCP can execute, but no skill authors POD-aware flows end to end.
+description: "Author and deploy the complete Klaviyo lifecycle flow set for a POD ecommerce brand — welcome, abandoned cart, post-purchase (production-time-aware), winback, browse abandonment — with POD-specific logic like misprint/replacement handling and honest shipping expectations. Use when setting up email/SMS automation, auditing flow performance against benchmarks, or adding a new flow. Fills the confirmed gap: Klaviyo's MCP can execute, but no skill authors POD-aware flows end to end."
 ---
 
 # Ecommerce Email Flows (POD-aware)
@@ -56,7 +56,9 @@ Free tier to 250 profiles is fine at launch.
 - SMS only after email flows prove out (adds ~$15/mo + per-message; higher ROI later).
 - CAN-SPAM: business address in footer (owner's launch-checklist item).
 - Every flow gets a test send + a live trigger test before activation (Karpathy rule 9:
-  prove it fires, alert when it doesn't, weekly human check documented in the runbook).
+  prove it fires, alert when it doesn't, weekly human check — the sweep in
+  `lastone/docs/00-operating-runbook.md` includes "welcome + abandoned cart each fired in
+  the last 7 days").
 - Target trajectory: email/SMS at 15–20% of revenue by months 7–9, 25–30% by months 13–18.
   Audit against these numbers monthly; a flow below benchmark gets ONE variable changed
   at a time.

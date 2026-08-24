@@ -21,8 +21,9 @@ This skill is risk screening, not legal advice — a lawyer decides edge cases.
   model names, fashion/lifestyle brands, universities, bands/artists.
 - Check text IN the artwork, the title, tags, description, AND paid-ad keywords (buying a
   trademark as an ad keyword is part of the Coachella v. Urban Outfitters pattern).
-- Search USPTO TESS (tmsearch.uspto.gov) for exact and phonetic matches on any word/phrase
-  in the design; search the phrase + "trademark" for known enforcement history.
+- Search USPTO Trademark Search (tmsearch.uspto.gov — the system that replaced TESS) for
+  exact and phonetic matches on any word/phrase in the design; search the phrase +
+  "trademark" for known enforcement history.
 - Generic descriptors are fine: "rave outfit", "festival wear", "lake life", "dog mom".
   Specific branded events/teams/models are never fine — including "inspired by" framing.
 
@@ -46,13 +47,15 @@ This skill is risk screening, not legal advice — a lawyer decides edge cases.
   (check new slang/numbers against ADL Hate Symbols DB), no drug paraphernalia claims,
   no medical claims on garments, intimates listed per marketplace category rules.
 - Consumables (year-two coffee line): label claims screened separately — no health
-  claims; FDA labeling rules per the build repo's niche research.
+  claims; FDA labeling rules in `lastone/docs/01-niche-research.md` §2.
 
 ## Output format
 
 For each screened item return: `VERDICT: PASS | FAIL | LAWYER` with a one-line reason per
-pass, and for FAIL the specific term/element to remove. Log every screen (date, design
-id, verdict) to the build repo — the log is the defense record of good-faith process.
+pass, and for FAIL the specific term/element to remove. Log every screen as one row —
+date, design id, verdict, reason — in the build repo's append-only
+`lastone/docs/ip-screen-log.md` (create the file on the first screen). That log is the
+defense record of good-faith process; a screen that isn't logged didn't happen.
 
 ## When a takedown/notice arrives anyway
 

@@ -1,7 +1,7 @@
-# superman
+# web-repos-and-skills
 
-Curated, URL-verified catalogs of useful software libraries, tools, and Claude skills —
-plus custom skills built where the ecosystem has gaps.
+Curated catalogs of useful software libraries, tools, and Claude skills — plus custom
+skills built where the ecosystem has gaps.
 
 ## Catalogs
 
@@ -31,5 +31,6 @@ solo POD-founder persona end to end:
 Expansion policy: never rely only on existing/built-in skills — keep surveying the
 ecosystem and expanding this repo. Re-survey at each build phase of `lastone`.
 
-Every GitHub URL in these catalogs is verified to resolve (ECOMMERCE-STACK marks the
-fetch-verified subset explicitly).
+URL verification is explicit, not assumed: entries marked ✅ in ECOMMERCE-STACK were
+fetched and confirmed to resolve; unmarked entries came from search and should be verified
+before you rely on them.
