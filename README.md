@@ -27,6 +27,7 @@ solo POD-founder persona end to end:
 | [`ecommerce-email-flows`](./skills/ecommerce-email-flows/SKILL.md) | POD-aware Klaviyo lifecycle flows, authored + deployed |
 | [`pod-ip-screening`](./skills/pod-ip-screening/SKILL.md) | Trademark/copyright/policy hard gate before printing |
 | [`ecommerce-margin-watch`](./skills/ecommerce-margin-watch/SKILL.md) | Live true-CAC and margin reconciliation, weekly ritual |
+| [`weather-merchandising`](./skills/weather-merchandising/SKILL.md) | State-based weather storefront: cached weather, product tagging, dynamic ranking |
 
 Expansion policy: never rely only on existing/built-in skills — keep surveying the
 ecosystem and expanding this repo. Re-survey at each build phase of `lastone`.
