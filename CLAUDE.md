@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 This is the **skills and libraries repo** for the Amara Bay build (companion to
-`myatgthu/lastone`, branch-matched on `claude/online-business-startup-plan-4jlir1`).
+`myatgthu/lastone`; both repos work on `main`).
 It contains no application code: only curated catalogs (`LIBRARIES.md`,
 `ECOMMERCE-STACK.md`, `HOUSING-FINANCE-RESEARCH.md`) and custom Claude skills under
 `skills/*/SKILL.md`.
@@ -23,5 +23,6 @@ Rules that matter here:
 - **Cross-references**: skills point into `lastone/docs/*` by path (the specs live
   there, the operating procedure lives here). Keep both sides working when renaming.
 - **Never use em-dashes** in anything new (owner instruction, 2026-08-24). One logical
-  change per commit. Push with `git push -u origin <branch>`, retrying network
-  failures up to 4 times with 2s/4s/8s/16s backoff.
+  change per commit. **All work on `main`** (owner decision 2026-08-25). Push with
+  `git push -u origin main`, retrying network failures up to 4 times with 2s/4s/8s/16s
+  backoff.
