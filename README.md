@@ -13,11 +13,16 @@ skills built where the ecosystem has gaps.
   POD tooling, premium-storefront frontend stack, and the gap analysis.
 - **[HOUSING-FINANCE-RESEARCH.md](./HOUSING-FINANCE-RESEARCH.md)** — libraries, tools,
   data sources, and skills for **researching apartment hunting, loans, and financing**.
+- **[MOBILE-APP-STACK.md](./MOBILE-APP-STACK.md)** contains **React Native skills adopted
+  from the Vercel libraries** for the planned iOS and Android app build: nine skills,
+  vendored under `skills/`, each verified against its source repo.
 
-## Custom skills (`skills/`)
+## Skills (`skills/`)
 
-Built from an August 2026 ecosystem survey that confirmed no existing skill covers the
-solo POD-founder persona end to end:
+Two kinds live side by side: **adopted** skills vendored from external repos per the
+expansion policy (currently the nine Vercel skills listed in MOBILE-APP-STACK.md), and
+**custom** skills built from an August 2026 ecosystem survey that confirmed no existing
+skill covers the solo POD-founder persona end to end:
 
 | Skill | Fills the gap |
 |---|---|
